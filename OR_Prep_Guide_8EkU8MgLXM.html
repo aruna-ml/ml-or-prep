@@ -79,6 +79,14 @@ details.card li{margin:5px 0}
 .katex{font-size:1.04em}
 .katex-display{margin:10px 0;overflow-x:auto;overflow-y:hidden;padding:4px 0}
 /* ---------- Tables ---------- */
+.qa{margin:13px 0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.qa .q{background:var(--accent-bg);padding:10px 16px;font-weight:700;font-size:15px;line-height:1.5}
+.qa .q::before{content:'Q — ';color:var(--red)}
+.qa .a{padding:10px 16px 12px;font-size:15px;border-top:1px solid var(--line)}
+.qa .a::before{content:'A — ';color:var(--green);font-weight:800}
+.steps{counter-reset:st;margin:12px 0}
+.steps .st{position:relative;padding:6px 0 6px 40px;margin:2px 0}
+.steps .st::before{counter-increment:st;content:counter(st);position:absolute;left:0;top:8px;background:var(--red);color:#fff;width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
 table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14.5px;background:var(--card)}
 th{background:var(--th-bg);color:var(--th-fg);text-align:left;padding:9px 12px;font-size:13px;letter-spacing:.3px}
 td{border:1px solid var(--line);padding:8px 12px;vertical-align:top}
@@ -121,6 +129,8 @@ pre code{background:none;color:inherit;padding:0;font-size:inherit}
   <a href="#s11">11 · Six worked DoorDash examples</a>
   <a href="#s12">12 · Exact vs. heuristic tradeoffs</a>
   <a href="#s13">13 · Cheat sheet &amp; pitfalls</a>
+  <div class="nav-group">Reference</div>
+  <a href="#sgloss">Glossary of abbreviations</a>
 </nav>
 <main>
 <header class="hero">
@@ -726,8 +736,27 @@ $$q^* = F^{-1}\!\Big(\frac{c_u}{c_u + c_o}\Big) \quad\text{(critical fractile)}$
 <div class="fl">Model</div>
 $$\begin{aligned}\min\ & \sum_{i,j} c_{ij}\,x_{ij} + \sum_j p_j\, u_j\\ \text{s.t. } & \textstyle\sum_i x_{ij} + u_j = 1 && \forall j\ \ \text{(served or deferred)}\\ & \textstyle\sum_j x_{ij} \le 1 && \forall i\ \ \text{(one offer per Dasher)}\\ & x_{ij} = 0 && \forall (i,j)\ \text{infeasible pairs (too far, arrives before food ready + buffer)}\end{aligned}$$
 </div>
-<p><b>Why this shape:</b> the deferral variable \(u_j\) is the soft-constraint pattern (§6) — it makes the model always feasible and encodes the <b>delay decision</b>: when \(p_j\) is still small (young order) and all current matches are poor, deferring beats a bad match; as the order ages, \(p_j\) rises and forces assignment. Filtering infeasible pairs keeps the model sparse (not \(|I|\times|J|\) dense).</p>
-<p><b>Follow-ups to expect:</b> (1) <i>Declines?</i> — scale cost by acceptance probability or re-solve on decline (the every-minute loop makes this cheap); mention the churn risk of repeated offers. (2) <i>Speed?</i> — it's assignment-like; LP relaxation is near-integral; warm start from last cycle. (3) <i>Batching?</i> — see Example 2; extend \(x\) to Dasher–batch pairs. (4) <i>Fairness?</i> — add earnings floor via max-min term or long-run earnings feature inside \(c_{ij}\).</p>
+<h4>Walking through the model, decision by decision</h4>
+<div class="steps">
+<div class="st"><b>Why these variables?</b> The atomic decision a dispatcher makes is "offer order \(j\) to Dasher \(i\) — yes or no", hence one binary \(x_{ij}\) per plausible pair. The second variable \(u_j\) exists because "assign nobody right now" is also a legitimate decision, and often a good one: the marketplace refreshes every minute, and a much better Dasher may free up 90 seconds from now. Without \(u_j\), the model would be forced into bad matches just to stay feasible.</div>
+<div class="st"><b>Why this objective?</b> \(c_{ij}\) is a single dollarized score per pair — concretely something like \(c_{ij} = w_1\,\hat t^{\,deliv}_{ij} + w_2\,\hat t^{\,travel}_{ij} + w_3\,(\text{Dasher wait at store})\), where the \(\hat t\)'s come from ML models and the weights convert minutes into dollars (a minute of customer waiting ≈ churn-derived cost; a minute of Dasher time ≈ pay rate). The deferral penalty \(p_j\) competes in the same units, so deferral wins exactly when \(\min_i c_{ij} > p_j\): the best available match costs more than waiting one more cycle.</div>
+<div class="st"><b>Constraint 1 — served or deferred.</b> \(\sum_i x_{ij} + u_j = 1\) says every order gets exactly one disposition this cycle. The slack is <i>built into</i> the equality — this is the elastic pattern of §6, and it guarantees the model can never return INFEASIBLE, which matters at 7pm on a Friday.</div>
+<div class="st"><b>Constraint 2 — one offer per Dasher.</b> \(\sum_j x_{ij} \le 1\). It is \(\le\), not \(=\), because leaving a Dasher idle is allowed — and correct when they're badly positioned for everything currently open.</div>
+<div class="st"><b>Sparsification.</b> Never build all \(|I|\times|J|\) variables. Pre-filter to pairs within a travel-time radius, where the Dasher's arrival wouldn't badly precede food-ready time. In a region with 300 Dashers × 400 orders, filtering typically cuts 120k pairs to a few thousand — the difference between a 50 ms and a 5 s solve.</div>
+<div class="st"><b>How \(p_j\) creates the delay policy.</b> Make \(p_j\) increase with order age (e.g., a linear ramp after 2 minutes). A young order facing only poor matches gets deferred; as it ages, \(p_j\) climbs until some assignment becomes cheaper than waiting. One parameter yields a principled "wait for a better match" behavior — no separate delay logic needed.</div>
+<div class="st"><b>Sanity checks to say out loud.</b> Units: everything in dollars. Tiny instance: 1 Dasher, 2 orders ⇒ one order must defer (Constraint 2 caps offers) — correct behavior. Solve time: assignment-like structure, near-integral LP relaxation, warm-startable ⇒ comfortably sub-second.</div>
+</div>
+<h4>Follow-up questions &amp; strong answers</h4>
+<div class="qa"><div class="q">Dashers can decline offers. Doesn't your model assume acceptance?</div>
+<div class="a">Yes — and the fix has a reactive and a proactive half, used together. <b>Reactive:</b> the loop re-solves every minute, so a declined order simply reappears next cycle with a higher \(p_j\) (it aged). <b>Proactive:</b> discount each match by predicted acceptance probability \(\hat a_{ij}\) — use expected effective cost (e.g., inflate \(c_{ij}\) for low-acceptance pairs) so the model avoids offers likely to bounce. Operationally I'd also cap re-offers per order and escalate pay after each decline: repeated declines signal a mispriced offer, and every bounce costs 1–2 minutes of customer latency.</div></div>
+<div class="qa"><div class="q">This runs per region every minute. What breaks at 10× scale, and what do you do about it?</div>
+<div class="a">Variable count grows with Dashers × orders per region, so the levers in order: (1) sharper pair filtering — smaller radius, top-\(k\) nearest Dashers per order; (2) warm-start from the previous cycle — 95% of marketplace state is unchanged minute-to-minute, so the solver mostly re-confirms the prior basis; (3) split into independent geographic subproblems (the constraint matrix is already block-diagonal across regions). Only if all that fails would I go heuristic — and I'd keep the MIP running offline as the benchmark that measures the heuristic's optimality gap.</div></div>
+<div class="qa"><div class="q">How would you extend this to batching — one Dasher carrying multiple orders?</div>
+<div class="a">Change the unit of assignment from an order to a <b>batch</b>. Generate candidate batches (singletons, pairs, triples passing locality and lateness screens), then assign Dashers to batches with a partitioning constraint ensuring each order lands in exactly one selected batch — that's Example 2. The key insight to voice: the matching model's <i>structure</i> survives; only the definition of a "column" changes from one order to a small bundle.</div></div>
+<div class="qa"><div class="q">Your model optimizes each minute myopically. Doesn't it miss the future — say, a dinner rush starting in 20 minutes?</div>
+<div class="a">Per-cycle re-solving is a <b>rolling horizon</b>, which absorbs most uncertainty, but it is indeed myopic about <i>predictable</i> future imbalance. Two pragmatic upgrades: (1) add a future-value term to \(c_{ij}\) that penalizes stranding a Dasher in a zone forecast to go quiet — an ML-estimated opportunity cost playing the role of a value function; (2) make the deferral penalty demand-aware, deferring more aggressively when supply is forecast to improve. Full RL/stochastic dispatch exists, but I'd demand simulation evidence that it beats the rolling-horizon baseline before taking on that complexity.</div></div>
+<div class="qa"><div class="q">What about Dasher fairness — couldn't some Dashers get starved of earnings?</div>
+<div class="a">Three escalating tools: (1) a soft term in \(c_{ij}\) favoring Dashers with low recent earnings — cheap and tunable; (2) a hard anti-starvation rule — no active Dasher goes more than \(T\) minutes without an offer, implemented as a high-priority bonus on starved pairs; (3) max-min fairness — maximize minimum session earnings via the \(\min T\) pattern from §5. The stronger the guarantee, the more total efficiency you give up, so I'd trace the fairness–efficiency Pareto frontier and let the business choose the operating point — that framing itself scores points.</div></div>
 </div>
 </details>
 
@@ -742,8 +771,23 @@ $$\begin{aligned}\min\ & \sum_{i,j} c_{ij}\,x_{ij} + \sum_j p_j\, u_j\\ \text{s.
 <div class="fl">Step 2 — select batches: set partitioning</div>
 $$\begin{aligned}\min\ & \sum_{k\in K} c_k\, y_k \\ \text{s.t. } & \sum_k a_{jk}\, y_k = 1 \quad \forall j\in J && \text{(each order in exactly one chosen batch)}\\ & \sum_k y_k \le |I| && \text{(enough Dashers)}\\ & y_k \in \{0,1\}\end{aligned}$$
 </div>
-<p><b>Why this shape:</b> enumerating pairs/triples among co-located orders is tractable (locality pruning); the partitioning model then optimizes globally over them. This decomposition — <i>enumerate/generate columns, then select</i> — is exactly how airlines do crew pairing and is the professional way to present batching. If \(K\) explodes, name <b>column generation</b>: solve the LP restricted to current columns, use order dual prices \(\pi_j\) to search for a new batch with negative reduced cost \(c_k - \sum_{j\in k}\pi_j &lt; 0\), repeat.</p>
-<p><b>Quality guard alternatives:</b> hard cap (only generate batches with lateness ≤ 10 min) vs. soft (lateness penalty inside \(c_k\)) — say both, note generation-time screening is cleaner because it keeps quality logic out of the master problem. Combine with Example 1 by replacing "batch count ≤ Dashers" with Dasher-specific assignment \(x_{ik}\) of batches to Dashers.</p>
+<h4>Walking through the model, decision by decision</h4>
+<div class="steps">
+<div class="st"><b>Why two levels?</b> The naive formulation — binaries for "orders \(j\) and \(j'\) share a Dasher" — drowns in pairwise consistency constraints and quadratic interactions. The professional move is to change what a variable <i>means</i>: let each variable represent an entire candidate batch. All the messy feasibility logic (route compatibility, lateness) gets checked <b>once, at generation time</b>, outside the optimization; the optimization then only answers "which of these pre-validated bundles do we pick?" This "columns = whole plans" trick is the same one behind airline crew scheduling.</div>
+<div class="st"><b>Generation step in practice.</b> For each merchant cluster, enumerate singleton batches (always), plus pairs/triples of orders whose pickups are within, say, 200 m and whose combined best route adds ≤ \(x\) minutes of detour and ≤ \(y\) minutes of predicted lateness for any member. For 2–3 order batches over locality-pruned neighborhoods, this is thousands of candidates, not millions — cheap. For each candidate, compute the best stop sequence (Example 6 — trivially enumerable at this size) to get its cost \(c_k\).</div>
+<div class="st"><b>The partitioning constraint.</b> \(\sum_k a_{jk} y_k = 1\) for every order \(j\): each order appears in exactly one <i>selected</i> batch. Since singletons are always candidates, feasibility is guaranteed — the model can always fall back to "no batching at all." That built-in fallback is worth pointing out; it's the same always-feasible design principle as Example 1's deferral variable.</div>
+<div class="st"><b>The cost \(c_k\) carries the tradeoff.</b> A pair batch has lower total Dasher time than two singletons (that's the efficiency win) but higher expected lateness (the quality cost). Put both into \(c_k\) in dollars: \(c_k = (\text{route time}) \cdot (\text{Dasher \$/min}) + \rho \cdot (\text{expected lateness minutes})\). The optimizer then batches exactly when efficiency gains beat quality costs — the business tradeoff lives in one tunable \(\rho\).</div>
+<div class="st"><b>Capacity link.</b> \(\sum_k y_k \le |I|\) keeps selected batches within available Dashers. In the full production version you'd instead assign specific Dashers to batches (\(x_{ik}\), merging Example 1's structure) because Dasher position affects each batch's cost — say this as the natural extension.</div>
+</div>
+<h4>Follow-up questions &amp; strong answers</h4>
+<div class="qa"><div class="q">Your candidate set could explode for dense downtown zones. What then?</div>
+<div class="a">That's the cue for <b>column generation</b>. Don't enumerate — iterate: solve the LP relaxation over the current (small) candidate pool; read the dual price \(\pi_j\) on each order's partitioning constraint (interpretable as "what the current solution implicitly pays to cover order \(j\)"); then run a pricing subroutine that searches for a new batch whose cost beats its members' combined dual prices, i.e., \(c_k - \sum_{j\in k}\pi_j &lt; 0\). Add it, re-solve, repeat until no improving batch exists — at which point the LP is provably optimal over <i>all</i> possible batches, including ones never enumerated. For integer solutions this becomes branch-and-price; in practice at DoorDash-like scale, batches cap at 2–4 orders, so smart enumeration usually suffices — knowing when the fancy tool is unnecessary is part of the answer.</div></div>
+<div class="qa"><div class="q">Should lateness protection be a hard rule or a penalty?</div>
+<div class="a">Both appear in practice, at different layers. <b>Generation-time hard screen</b>: never even create a batch predicted to make any member &gt; 10 min late — keeps toxic options out of the model entirely and keeps the master problem clean. <b>Selection-time soft penalty</b>: within surviving candidates, charge expected lateness in \(c_k\) so the model still prefers gentler batches. The layered answer is stronger than picking one: hard screens bound worst-case harm; soft penalties optimize within the safe set. And mention monitoring: track realized lateness of batched vs. unbatched orders as the health metric for whether screens are calibrated.</div></div>
+<div class="qa"><div class="q">Prep-time predictions are noisy. How does that change batching?</div>
+<div class="a">Batching couples orders, so one late kitchen now delays two or three customers — errors are <i>correlated damage</i>. Three mitigations: (1) use a conservative <b>quantile</b> (say p75) of predicted prep time in the lateness screen rather than the mean — asymmetric costs demand quantile inputs, the §8 newsvendor logic again; (2) prefer batching orders from the <i>same merchant</i> (one prep-time risk, not two independent ones); (3) leave re-sequencing freedom to the Dasher app at execution time — the plan adapts when reality diverges. If pushed further: simulate the batching policy against historical prep-time realizations and compare p90 lateness, not just averages.</div></div>
+<div class="qa"><div class="q">How do you measure whether batching is actually good for the business?</div>
+<div class="a">Define the tension explicitly: batching raises deliveries-per-Dasher-hour (efficiency, cost side) but risks lateness and food quality (experience side). Offline: replay historical days under the batching policy vs. without, comparing cost per delivery, on-time rate, p90 lateness. Online: <b>switchback experiment</b> (randomize by region × time window — user-level randomization is invalid here because batching changes shared Dasher supply), with guardrails on cancellation rate, rating dips, and Dasher earnings per hour. The metric ladder answer — offline replay, then switchback with guardrails — is exactly what they want to hear.</div></div>
 </div>
 </details>
 
@@ -759,8 +803,23 @@ $$\begin{aligned}\min\ & \sum_{k\in K} c_k\, y_k \\ \text{s.t. } & \sum_k a_{jk}
 <p>\(y_k \in \mathbb{Z}_{\ge0}\): slots opened on template \(k\); \(s_t \ge 0\): coverage shortfall.</p>
 $$\begin{aligned}\min\ & \sum_k c_k y_k + \sum_t v_t\, s_t\\ \text{s.t. } & \sum_k a_{tk}\,\sigma_k\, y_k + s_t \ge r_t \quad \forall t\\ & \sum_k y_k \le N^{max} \ \ \text{(recruitable pool)},\qquad y_k \le U_k \ \ \text{(template caps)}\end{aligned}$$
 </div>
-<p><b>Why this shape:</b> classic set covering with elastic shortfall (§6). The percentile \(q_\alpha\) is where the <b>newsvendor logic</b> (§8) enters: set \(\alpha = c_u/(c_u+c_o)\) from the cost of undersupply (lost orders, late deliveries) vs. oversupply (idle-time guarantees). This is a beautiful "forecast → optimization" bridge to articulate: <i>the forecast's uncertainty, not just its mean, sets the staffing level.</i></p>
-<p><b>Follow-ups:</b> incentive knobs (if slots go unfilled, raise \(c_k\) — pay more — captured by making show-rate \(\sigma_k(c_k)\) piecewise-linear in pay); zone dimension (add index \(z\), possibly with cross-zone repositioning as a transportation problem); integrality relaxation is fine at large counts (round up).</p>
+<h4>Walking through the model, decision by decision</h4>
+<div class="steps">
+<div class="st"><b>Why shift templates, not per-hour headcounts?</b> Because people work in contiguous blocks, not disconnected hours. The template set \(K\) encodes realistic shifts (lunch block, dinner block, split shifts), and \(a_{tk}\) records which hours each covers. Deciding \(y_k\) slots per template automatically produces hour-by-hour coverage that a human could actually staff. This "columns = feasible work patterns" idea is set covering's core, and the same trick as Example 2's batches.</div>
+<div class="st"><b>Where the forecast enters — and why a quantile, not the mean.</b> Required Dasher-hours are \(r_t = q_\alpha(\hat d_t)/\mu\): take the demand forecast's \(\alpha\)-th percentile, divide by productivity \(\mu\) (orders per Dasher-hour). Staffing to the <i>mean</i> would leave you short half the time. The right \(\alpha\) comes from newsvendor economics: if an unserved order costs \(c_u = \$12\) (lost margin + churn) and an idle Dasher-hour costs \(c_o = \$6\) in guarantees, staff to \(\alpha = 12/(12+6) = 0.67\) — the 67th percentile of demand. This one calculation connects your forecasting model directly to a staffing decision, and is the single most impressive thing to say in this example.</div>
+<div class="st"><b>Why the show-rate \(\sigma_k\)?</b> You don't command Dashers — you open slots and they self-select. If historically only 80% of claimed dinner slots produce an active Dasher, effective coverage is \(0.8\,y_k\). Ignoring this systematically understaffs. It also flags the deeper truth that "supply" here is <i>influenced</i>, not controlled — which is why incentives appear in the follow-ups.</div>
+<div class="st"><b>Why the elastic shortfall \(s_t\)?</b> Some hours may be impossible to cover (limited pool, unpopular time). The shortfall variable with cost \(v_t\) keeps the model feasible and — more usefully — <i>prices</i> each uncovered hour so you know exactly where coverage pain concentrates. Post-solve, sorted \(s_t\) values are your incentive-targeting list.</div>
+<div class="st"><b>Integrality note.</b> \(y_k\) are integers, but at counts of hundreds per template, solving the LP and rounding up costs pennies — say "I'd relax to LP at this scale" to show you know when integrality matters (it matters for 3 vans; not for 300 Dashers).</div>
+</div>
+<h4>Follow-up questions &amp; strong answers</h4>
+<div class="qa"><div class="q">What if opened slots go unfilled — supply just doesn't show up?</div>
+<div class="a">Then pay is the decision variable, not just slot count. Model show-rate as increasing in the incentive: \(\sigma_k(c_k)\) estimated from historical fill curves, made piecewise-linear so the optimization stays a MIP — now the model chooses <i>both</i> how many slots and at what pay level (a menu of (template, pay-tier) columns, one \(y\) per combination — the multiple-choice pattern). The dual view is elegant: the shadow price on the coverage constraint for hour \(t\) tells you the maximum bonus worth paying for one more Dasher-hour there — the model literally prices its own incentives.</div></div>
+<div class="qa"><div class="q">How does this extend across zones — demand is spatial, and Dashers move?</div>
+<div class="a">Add a zone index: coverage constraints per (zone, hour), templates per zone. The interesting coupling is that Dashers can reposition mid-shift: model cross-zone flows \(f_{z\to z',t}\) with travel times as a small transportation/flow layer on top of covering. Practically I'd start with zones independent (clean, decomposable), quantify how often adjacent zones have opposite-sign shortfalls (the repositioning opportunity), and add the flow layer only if that's material — an evidence-driven complexity escalation, which is the tone interviewers reward.</div></div>
+<div class="qa"><div class="q">Your demand forecast will be wrong. How wrong is too wrong, and how would you know?</div>
+<div class="a">The model already consumes uncertainty through the quantile \(q_\alpha\) — so the first-order question is whether the forecast's <i>quantiles are calibrated</i>: does actual demand exceed the p67 forecast about 33% of the time? That's a monitoring metric (pinball loss / coverage tests per zone-hour, §ML guide). Second, do a decision-sensitivity backtest: replay past weeks with the forecast vs. perfect hindsight and measure the staffing cost gap — if the gap is small, forecast accuracy isn't the binding problem. Third, robustness: if a zone's forecast has fat tails (new market), widen to a higher \(\alpha\) there specifically. Evaluating the forecast <i>through the decision it feeds</i> rather than by wMAPE alone is the senior answer.</div></div>
+<div class="qa"><div class="q">Dashers dislike being told when to work. Does this model conflict with flexibility?</div>
+<div class="a">The model opens <i>opportunities</i>, it doesn't assign people — slots are offers into a self-selection market, which is exactly why \(\sigma_k\) and pay-responsive fill rates are in the model. If leadership wants stronger guarantees (e.g., committed schedules for a subset who opt in), model two supply tiers: committed slots (high \(\sigma\), higher cost) and open slots (lower \(\sigma\), cheaper), and let the optimization find the mix. Framing a labor-policy question back as a portfolio-of-supply-types optimization keeps you on technical ground while acknowledging the human constraint.</div></div>
 </div>
 </details>
 
@@ -775,8 +834,23 @@ $$\begin{aligned}\min\ & \sum_k c_k y_k + \sum_t v_t\, s_t\\ \text{s.t. } & \sum
 <div class="fl">Model (LP — no binaries needed: concave maximization)</div>
 $$\begin{aligned}\max\ & \sum_{z,h}\sum_p m_{zhp}\, b_{zhp}\\ \text{s.t. } & \sum_{z,h,p} b_{zhp} \le B; \qquad 0 \le b_{zhp} \le w_{zhp}\\ & \sum_{h,p} m_{zhp} b_{zhp} \ge \underline{G}_z \ \ \forall z \ \ \text{(optional fairness floor)}\end{aligned}$$
 </div>
-<p><b>Why this shape:</b> concave returns + maximization ⇒ piecewise-linearization needs <i>no</i> integer variables (§5) — the LP naturally fills steepest pieces first. Without the fairness floor, the optimal policy is simply: <b>fund zone-hours in order of marginal uplift until the budget's shadow price exceeds the next marginal return</b> — the dual of the budget constraint <i>is</i> the company's internal price of an incremental delivery. Saying that sentence demonstrates duality mastery on a business problem.</p>
-<p><b>Follow-ups:</b> integer campaign choices (fixed creative costs ⇒ binaries, becomes multiple-choice knapsack); uncertainty in uplift (robust version: use lower-confidence-bound slopes); feedback loops (incentives shift supply which shifts uplift — re-estimate weekly).</p>
+<h4>Walking through the model, decision by decision</h4>
+<div class="steps">
+<div class="st"><b>Get the coefficients right before the math.</b> The uplift curves \(g_{zh}(b)\) must be <i>causal</i> — "incremental deliveries caused by spending \(b\) here" — not correlational. Historical spend correlates with demand spikes (you spent where things were busy), so a naive regression wildly overstates returns. Say explicitly: coefficients come from uplift modeling / past incentive experiments, and this framing alone separates you from candidates who optimize garbage inputs beautifully.</div>
+<div class="st"><b>Why diminishing returns, and what it buys.</b> The first \$100 in a zone-hour mobilizes the most price-sensitive Dashers; the next \$100 works on less responsive ones. So \(g_{zh}\) is concave. The payoff: a concave function being <i>maximized</i> linearizes with <b>no binaries</b> — approximate it by segments with decreasing slopes \(m_{zh1} > m_{zh2} > \cdots\), give each segment its own bounded variable, and the LP automatically fills steeper segments first (it would never skip a better slope for a worse one). No SOS2, no integer machinery — recognizing when convexity does the work for you is exactly the §5 skill.</div>
+<div class="st"><b>The budget constraint is the whole game.</b> One coupling constraint \(\sum b_{zhp} \le B\) ties thousands of otherwise-independent zone-hours together. At the optimum, its dual \(\lambda^*\) is the <b>marginal value of budget</b>: every funded segment has slope \(\ge \lambda^*\), every unfunded one \(&lt; \lambda^*\). The optimal policy is literally "fund everything whose marginal uplift-per-dollar clears the bar \(\lambda^*\)."</div>
+<div class="st"><b>Fairness floors change the story just enough.</b> A minimum uplift \(\underline G_z\) per zone forces spending into zones that don't clear the global bar. The dual on that floor tells you exactly what the fairness policy costs in foregone deliveries — a number worth handing to the business.</div>
+<div class="st"><b>Sanity checks.</b> Units: \(m\) in deliveries per dollar, \(b\) in dollars. Degenerate case: if all curves were linear (no diminishing returns), the LP would dump the entire budget into the single best zone-hour — the concavity is what produces sensible diversified allocations. Scale: (zones × hours × pieces) ≈ 10⁴–10⁵ bounded variables, one coupling constraint — solves instantly.</div>
+</div>
+<h4>Follow-up questions &amp; strong answers</h4>
+<div class="qa"><div class="q">Marketing wants to add fixed-cost campaign choices — a zone either gets a promo campaign (with a creative/setup cost) or not. What changes?</div>
+<div class="a">Fixed costs break pure concavity, so binaries enter: \(z_{c} \in \{0,1\}\) per campaign with cost \(F_c\), and spend in that campaign only if selected — the fixed-charge pattern \(b \le M z_c\) with \(M\) = the campaign's spend cap (tight, per §5). The problem becomes a multiple-choice knapsack — still a very solvable MIP at realistic sizes. The structural sentence to say: "continuous spend with diminishing returns ⇒ LP; discrete campaign on/off decisions ⇒ MIP; the formulation absorbs both."</div></div>
+<div class="qa"><div class="q">Your uplift estimates carry uncertainty — some zones have almost no experimental data. Spend there anyway?</div>
+<div class="a">Two complementary moves. <b>Robustness:</b> optimize on lower-confidence-bound slopes rather than point estimates, so poorly-estimated zones must clear a higher bar — protects the downside. <b>Exploration:</b> that alone starves data-poor zones forever, so reserve a small exploration budget (say 5%) allocated to high-uncertainty zone-hours specifically to buy information — a bandit-flavored explore/exploit split. Then close the loop: this week's spend produces next week's uplift estimates. Saying "the allocation is also an experiment design" shows systems thinking beyond the LP.</div></div>
+<div class="qa"><div class="q">Incentives shift Dasher supply, which changes delivery times, which changes demand. Your uplift curves assume a static world. Problem?</div>
+<div class="a">Yes — it's a feedback loop, and the honest answer has three tiers. (1) At weekly cadence and moderate budget changes, treat curves as locally valid and re-estimate weekly — the standard production practice, fine for small moves. (2) For big-swing reallocations, the curves are off; run the new allocation as a regional experiment before full rollout, measuring realized uplift vs. predicted. (3) The full equilibrium treatment (supply responds to pay, demand responds to service quality) is a market-simulation exercise — worth it only for strategic questions like entering a new metro. Matching the modeling ambition to the decision's blast radius is the judgment being tested.</div></div>
+<div class="qa"><div class="q">How would you know, after the fact, that this optimizer beat what the ops team was doing manually?</div>
+<div class="a">Holdout-based measurement: keep a set of comparable zone-weeks under the manual policy (or a stratified switchback between policies) and compare incremental deliveries per dollar — the same causal discipline demanded of the inputs. Also track the model's own predictions vs. realized uplift per zone-hour: a calibration check on the curves that doubles as drift monitoring. Guardrails: Dasher earnings distribution and per-zone service levels, so the optimizer isn't quietly winning the metric by abandoning hard zones — which the fairness floors exist to prevent.</div></div>
 </div>
 </details>
 
@@ -791,7 +865,24 @@ $$\begin{aligned}\max\ & \sum_{z,h}\sum_p m_{zhp}\, b_{zhp}\\ \text{s.t. } & \su
 <div class="fl">Model</div>
 $$\begin{aligned}\min\ & \sum_i f_i z_i + \sum_{i,j} c_{ij}\, d_j\, x_{ij}\\ \text{s.t. } & \sum_i x_{ij} = 1 \ \forall j; \quad x_{ij} \le z_i \ \forall i,j; \quad \sum_j d_j x_{ij} \le Q_i z_i \ \forall i\\ & \sum_i z_i \le p; \qquad z_i \in \{0,1\},\ x_{ij} \ge 0\end{aligned}$$
 </div>
-<p><b>Discussion points that score:</b> disaggregated linking constraints for a tight relaxation (§7); demand uncertainty ⇒ solve over scenarios (two-stage: locations now, assignments per scenario — locations are first-stage variables shared across scenarios); cannibalization between nearby stores; and the practical note that with tens of sites and thousands of cells this MIP solves in seconds — no heuristics needed, unlike routing.</p>
+<h4>Walking through the model, decision by decision</h4>
+<div class="steps">
+<div class="st"><b>Two coupled decisions, two variable families.</b> Strategic: open site \(i\) or not — binary \(z_i\), carries the fixed cost \(f_i\). Operational: which store serves which neighborhood — \(x_{ij}\), the fraction of cell \(j\)'s demand served from site \(i\). The objective adds fixed costs and demand-weighted service costs in the same (dollar) units. Most location problems decompose this way: expensive irreversible decisions + cheap adjustable ones.</div>
+<div class="st"><b>The linking constraint, and why its form matters.</b> \(x_{ij} \le z_i\) says "you can't serve from a closed store." The tempting aggregate version \(\sum_j x_{ij} \le n\,z_i\) is logically equivalent but has a far weaker LP relaxation (a fractional \(z_i = 0.02\) can "open" 2% of a store cheaply). The disaggregated per-(i,j) form makes the relaxation tight and the branch-and-bound tree small — this is the concrete instance of §7's "bigger but tighter beats smaller but weaker," and citing it here is a strong-signal moment.</div>
+<div class="st"><b>Service radius as variable pruning.</b> The ≤30-min promise isn't a constraint row — just don't create \(x_{ij}\) for pairs beyond the radius. Modeling by <i>omission</i> keeps the matrix small and is the same sparsification instinct as Example 1.</div>
+<div class="st"><b>Capacity closes a loophole.</b> \(\sum_j d_j x_{ij} \le Q_i z_i\) caps each store's assigned demand. Without it, the model funnels a whole metro through one cheap store. Note the units check: both sides in orders/week.</div>
+<div class="st"><b>Why \(x\) can stay continuous.</b> If split service is acceptable (a neighborhood served by two stores), \(x_{ij} \ge 0\) suffices and the model solves faster; if single-sourcing is a business rule, flip \(x\) to binary and note the solve gets harder. Asking the interviewer which one the business wants is a natural, gradeable clarifying question.</div>
+<div class="st"><b>Scale reality.</b> Tens of candidate sites × thousands of demand cells ⇒ a MIP with a few dozen binaries and ~10⁵ continuous variables — solves in seconds. Unlike routing, there is no reason to reach for heuristics here; say so.</div>
+</div>
+<h4>Follow-up questions &amp; strong answers</h4>
+<div class="qa"><div class="q">Demand forecasts for neighborhoods you've never served are shaky. How do you make a multi-year lease decision on them?</div>
+<div class="a">Two-stage stochastic programming, explained simply: locations are <b>first-stage</b> (decided now, shared across futures); assignments are <b>second-stage</b> (adjust per demand scenario). Build 20–100 demand scenarios (growth rates, cannibalization levels, competitor entry), replicate the assignment variables per scenario, keep one set of \(z_i\), and minimize fixed cost + expected service cost. The solution favors sites that are <i>robust across futures</i> rather than optimal for one forecast. If the scenario model gets big, mention Benders decomposition as the standard tool (§12) — locations in the master, per-scenario LPs generating cuts. Also offer the cheaper alternative: solve per scenario, and pick sites appearing in most solutions — a defensible heuristic when stakes don't justify the machinery.</div></div>
+<div class="qa"><div class="q">Nearby stores cannibalize each other's demand. Your model treats demand cells as fixed. Isn't that wrong?</div>
+<div class="a">Partially — the model assigns fixed demand, it doesn't shrink it when a competitor-sibling opens nearby. Practical fixes in order of ambition: (1) build cannibalization into the demand inputs — a gravity/market-share model where cell demand splits by store attractiveness and distance; (2) add pairwise penalties or minimum-spacing constraints (\(z_i + z_{i'} \le 1\) for site pairs within 1 km — the at-most-one logic pattern); (3) iterate: solve, re-estimate demand under the chosen network, re-solve — a fixed-point loop that usually converges in a few rounds. The honest meta-point: location models are only as good as their demand model, so I'd stress-test the chosen network against pessimistic cannibalization assumptions before signing leases.</div></div>
+<div class="qa"><div class="q">Real estate isn't a clean menu — sites become available at different times, leases have terms. Does the one-shot model survive contact with reality?</div>
+<div class="a">The one-shot model is the right <i>evaluation engine</i>, wrapped in a rolling process: re-run it quarterly with the current network fixed (\(z_i = 1\) for existing stores, with closure variables if exits are allowed), the newly available sites as candidates, and multi-period demand scenarios. For explicit timing decisions, extend to a multi-period MIP — open/close variables per period with lease-term constraints — which stays very solvable at tens of sites. The habit being displayed: strategic models run repeatedly inside a decision process, not once.</div></div>
+<div class="qa"><div class="q">The 30-minute service promise — hard constraint or something softer?</div>
+<div class="a">Interrogate it before encoding it: is 30 minutes contractual, or a target? If hard, it's variable omission (no \(x_{ij}\) beyond radius) — clean but brittle: a cell reachable only at 32 minutes becomes unservable. If it's a target, keep those pairs with a steep service-time penalty in \(c_{ij}\) — coverage degrades gracefully and the solution tells you exactly which cells are expensive to promise. I'd present both and recommend soft-with-steep-penalty, because real coverage maps have awkward edges and the business usually prefers 'served slightly slow' to 'not served'. This is the §6 hard-vs-soft taxonomy applied live.</div></div>
 </div>
 </details>
 
@@ -806,8 +897,24 @@ $$\begin{aligned}\min\ & \sum_i f_i z_i + \sum_{i,j} c_{ij}\, d_j\, x_{ij}\\ \te
 <div class="fl">Model</div>
 $$\begin{aligned}\min\ & \sum_{v \in \text{drops}} w_v L_v \;+\; \lambda \sum_{u,v} \tau_{uv} x_{uv}\\ \text{s.t. } & \text{degree: each node entered/left exactly once (path from start)}\\ & t_v \ge t_u + s_u + \tau_{uv} - M(1 - x_{uv}) && \forall u,v \ \ \text{(time propagation)}\\ & t_{p} \ge e_{p} \ \forall p \in \text{pickups}; \qquad t_{\text{drop}(p)} \ge t_{p} && \text{(ready time; precedence)}\\ & L_v \ge t_v - d_v,\; L_v \ge 0 && \forall v \in \text{drops (tardiness slack)}\end{aligned}$$
 </div>
-<p><b>Why this shape:</b> time-propagation big-M constraints double as subtour elimination (times must increase along arcs, so no cycles — a point worth making). Tardiness \(L_v\) is the §6 penalized-slack pattern; weights \(w_v\) can differ (VIP customers, re-promised orders).</p>
-<p><b>The pragmatic punchline:</b> with ≤ 6 stops there are ≤ 5! = 120 orderings under precedence — <b>brute force enumerates them in microseconds</b>. Present the MIP to show modeling command, then say enumeration is the production answer at this size, and the MIP matters when batching decisions and routing couple at larger scale. Recognizing when a problem is small enough to enumerate is exactly the "rigor + pragmatism" balance the rubric asks for.</p>
+<h4>Walking through the model, decision by decision</h4>
+<div class="steps">
+<div class="st"><b>Two variable families: sequence and time.</b> Routing needs both <i>what order</i> (arc binaries \(x_{uv}\): "go from stop \(u\) directly to stop \(v\)") and <i>when</i> (continuous arrival times \(t_v\)). Keeping them separate and linking them with one constraint family is the clean architecture; models that try to encode timing inside sequencing variables get ugly fast.</div>
+<div class="st"><b>The time-propagation constraint is the heart.</b> \(t_v \ge t_u + s_u + \tau_{uv} - M(1 - x_{uv})\): <i>if</i> the route goes \(u \to v\) (\(x_{uv}=1\), big-M term vanishes), then arrival at \(v\) is at least arrival at \(u\) plus service plus travel. If not taken (\(x_{uv}=0\)), \(M\) deactivates the constraint entirely. It's the §5 indicator pattern doing scheduling work. Tight \(M\): the horizon length (say 90 min), never 10⁶.</div>
+<div class="st"><b>Free subtour elimination — say this, it's the elegant bit.</b> Classic TSP formulations need exponentially many constraints to forbid disconnected mini-loops. Here they're unnecessary: around any cycle, the time-propagation inequalities would force \(t\) to strictly increase back into itself — impossible. Time's arrow kills subtours for free.</div>
+<div class="st"><b>Business rules land as simple bounds.</b> Food-ready: \(t_p \ge e_p\) (arriving early at a pickup means waiting — if wait matters, add a wait variable and penalize it). Precedence: \(t_{\text{drop}(p)} \ge t_p\) — a dropoff can't precede its pickup. Both are one-liners once the time variables exist — the payoff of the two-family design.</div>
+<div class="st"><b>Lateness as priced slack.</b> \(L_v \ge t_v - d_v,\ L_v \ge 0\) — the tardiness pattern from §6/§13. The objective trades weighted lateness against route duration via \(\lambda\); weights \(w_v\) encode VIPs or already-re-promised orders. Lateness is soft because it must be: sometimes every sequence is late somewhere, and the model's job is choosing <i>who</i> eats the delay at minimum total damage.</div>
+<div class="st"><b>The pragmatic punchline — deliver it explicitly.</b> With ≤6 stops and precedence pruning, there are at most a few dozen valid orderings: <b>brute-force enumeration solves this in microseconds</b>. Present the MIP to demonstrate modeling command, then say enumeration is the production answer at this size — the MIP form matters when routing couples with upstream batching at scale. Knowing when the problem is small enough to enumerate is precisely the rigor-plus-pragmatism balance the rubric names.</div>
+</div>
+<h4>Follow-up questions &amp; strong answers</h4>
+<div class="qa"><div class="q">Travel and prep times are stochastic. Your times are point estimates — how wrong does this go, and what's the fix?</div>
+<div class="a">The failure mode: a sequence that's optimal on means but fragile — one slow kitchen cascades lateness down every later stop. Cheap fixes first: use padded or quantile travel/prep times (p70 rather than mean) so the plan carries slack where it hurts; re-optimize the remaining stops after every completed stop (trivial at this size — it's the rolling horizon again, at route scale). The heavier tool — stochastic routing over scenario samples — is rarely justified for 6 stops when re-sequencing en route is this cheap. Bonus point: evaluate sequencing policies in simulation on p90 lateness, not expected lateness, because the promise is a tail commitment.</div></div>
+<div class="qa"><div class="q">Scale this up: 50 stops, multiple Dashers, live traffic. Now what?</div>
+<div class="a">Now it's real VRPTW and exact MIP is out. The production stack: construction heuristic (regret insertion) for an initial solution, improved by <b>Large Neighborhood Search</b> — repeatedly destroy ~20% of the route assignments and optimally repair — which is state of the art and what OR-Tools' routing solver implements; column generation / branch-and-price if provable quality is required offline. Two anchors worth stating: keep an exact solver on small instances as the quality benchmark, and note that in food delivery the effective routing instances stay small by <i>design</i> — batches of 2–4 — so the hard combinatorics lives in batching (Example 2), not in sequencing.</div></div>
+<div class="qa"><div class="q">Why not just let the Dasher decide the stop order?</div>
+<div class="a">Partly you should — the Dasher sees ground truth (parking, building access) the model doesn't. The strong answer is a division of labor: the optimizer commits to the batch composition and a <i>recommended</i> sequence with predicted times (which feed customer ETAs); the app allows re-ordering, and deviations get logged. Then close the loop: if Dashers systematically reorder certain patterns, your travel/service-time model is biased — deviation rate becomes a model-health metric feeding retraining. Turning an autonomy question into a feedback-loop design shows product sense layered on OR.</div></div>
+<div class="qa"><div class="q">Your objective mixes lateness and route duration with a weight λ. How do you set it?</div>
+<div class="a">Dollarize both sides: a Dasher-minute costs roughly the effective pay rate; a late-minute costs churn-adjusted lifetime value damage, estimable from historical cancellation/rating data as a function of lateness. If the business can't commit to a single rate, sweep λ to trace the Pareto frontier of (route time, p90 lateness) and present 3 operating points — the ε-constraint alternative from §6. Never leave a multi-objective weight looking arbitrary; show it's either priced from data or explicitly chosen by the business.</div></div>
 </div>
 </details>
 
@@ -930,6 +1037,75 @@ $$\begin{aligned}\min\ & \sum_{v \in \text{drops}} w_v L_v \;+\; \lambda \sum_{u
 <li>Prepare 2–3 <b>past OR projects</b> in STAR form with: the actual formulation you used, one technical tradeoff, one number of business impact.</li>
 <li>Have your one-liner on ML+OR architecture ready: "ML predicts the coefficients, optimization makes globally consistent decisions, re-solved on a rolling horizon."</li>
 </ul>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="sgloss">
+<h2><span class="num">G</span>Glossary of abbreviations &amp; notation<input type="checkbox" class="done" data-k="or-gloss" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Optimization abbreviations</summary>
+<div class="body">
+<table>
+<tr><th>Abbrev.</th><th>Expansion</th><th>One-line meaning</th></tr>
+<tr><td>B&amp;B / B&amp;C</td><td>Branch and Bound / Branch and Cut</td><td>The MIP search algorithm: split on fractional variables, prune with LP bounds (+ cutting planes)</td></tr>
+<tr><td>DP</td><td>Dynamic Programming</td><td>Solve by recursion over subproblems (e.g., knapsack over capacities)</td></tr>
+<tr><td>IIS</td><td>Irreducible Infeasible Subsystem</td><td>Minimal set of mutually conflicting constraints; solver tool for debugging infeasibility</td></tr>
+<tr><td>LNS</td><td>Large Neighborhood Search</td><td>Heuristic loop: destroy part of a solution, optimally repair, repeat — state of the art for routing</td></tr>
+<tr><td>LP</td><td>Linear Program(ming)</td><td>Linear objective + linear constraints + continuous variables; polynomial-time solvable</td></tr>
+<tr><td>MDP</td><td>Markov Decision Process</td><td>Framework for sequential decisions under uncertainty (the RL setting)</td></tr>
+<tr><td>MIP / IP</td><td>Mixed-Integer / Integer Program</td><td>LP where some/all variables must be integer; NP-hard, the interview's core tool</td></tr>
+<tr><td>MTZ</td><td>Miller–Tucker–Zemlin</td><td>Compact (but weak) subtour-elimination constraints for TSP using ordering variables</td></tr>
+<tr><td>NP-hard</td><td>Non-deterministic Polynomial-time hard</td><td>No known polynomial algorithm; expect exponential worst case, use bounds/heuristics</td></tr>
+<tr><td>OR</td><td>Operations Research</td><td>The discipline: optimization, stochastic models, simulation for decisions</td></tr>
+<tr><td>RHS</td><td>Right-Hand Side</td><td>The constraint constants \(b\) in \(Ax \ge b\); what shadow prices differentiate against</td></tr>
+<tr><td>RINS</td><td>Relaxation Induced Neighborhood Search</td><td>Solver-internal heuristic combining incumbent + LP relaxation to find good solutions early</td></tr>
+<tr><td>RL</td><td>Reinforcement Learning</td><td>Learning sequential policies from reward feedback</td></tr>
+<tr><td>SOS2</td><td>Special Ordered Set, type 2</td><td>At most two adjacent variables nonzero — the piecewise-linear modeling device</td></tr>
+<tr><td>TSP</td><td>Traveling Salesman Problem</td><td>Single vehicle, visit all stops, minimize tour length</td></tr>
+<tr><td>TU</td><td>Totally Unimodular</td><td>Matrix property guaranteeing integral LP vertices — why assignment/flow LPs give integer answers free</td></tr>
+<tr><td>VRP / VRPTW</td><td>Vehicle Routing Problem (with Time Windows)</td><td>Multi-vehicle routing under capacities (and arrival-time windows)</td></tr>
+</table>
+<p>Solver names you'll see: <b>Gurobi</b>, <b>CPLEX</b> (commercial MIP solvers), <b>OR-Tools</b> (Google's open-source routing/optimization suite), <b>PDLP</b> (first-order LP solver for huge instances).</p>
+</div>
+</details>
+
+<details class="card" open>
+<summary>Business &amp; ML abbreviations used in this guide</summary>
+<div class="body">
+<table>
+<tr><th>Abbrev.</th><th>Expansion</th><th>One-line meaning</th></tr>
+<tr><td>A/B</td><td>A/B test</td><td>Randomized controlled online experiment; marketplaces need switchback (region×time) variants</td></tr>
+<tr><td>ETA</td><td>Estimated Time of Arrival</td><td>Predicted delivery time; an ML input to dispatch costs</td></tr>
+<tr><td>LTV</td><td>LifeTime Value</td><td>Expected total future value of a customer; used to dollarize churn/lateness</td></tr>
+<tr><td>ML / MLE</td><td>Machine Learning / Maximum Likelihood Estimation</td><td>In this guide ML supplies the predicted coefficients that optimization consumes</td></tr>
+<tr><td>MSE</td><td>Mean Squared Error</td><td>Average squared prediction error (see ML guide §1b)</td></tr>
+<tr><td>p90 / p95</td><td>90th / 95th percentile</td><td>Tail statistics — service promises are tail commitments, not averages</td></tr>
+<tr><td>SLA</td><td>Service Level Agreement</td><td>A committed service target (e.g., delivery within 45 min) — usually a soft constraint with a steep penalty</td></tr>
+<tr><td>STAR</td><td>Situation, Task, Action, Result</td><td>The storytelling structure for project walkthroughs</td></tr>
+<tr><td>wMAPE</td><td>weighted Mean Absolute Percentage Error</td><td>Volume-weighted forecast error metric (see ML guide §8)</td></tr>
+</table>
+</div>
+</details>
+
+<details class="card">
+<summary>Mathematical notation reference</summary>
+<div class="body">
+<table>
+<tr><th>Notation</th><th>Read as</th><th>Meaning</th></tr>
+<tr><td>\(\min_x / \max_x\)</td><td>minimize / maximize over \(x\)</td><td>Find the \(x\) giving the smallest/largest objective value</td></tr>
+<tr><td>s.t.</td><td>"subject to"</td><td>Introduces the constraint list</td></tr>
+<tr><td>\(\forall j \in J\)</td><td>"for all \(j\) in \(J\)"</td><td>One copy of the constraint per element of the set</td></tr>
+<tr><td>\(x \in \{0,1\}\) / \(\mathbb{Z}_{\ge0}\) / \(\mathbb{R}\)</td><td>binary / nonnegative integer / real</td><td>Variable domain declarations — always state them</td></tr>
+<tr><td>\(c^\top x\)</td><td>"c transpose x"</td><td>Dot product \(\sum_i c_i x_i\) — a weighted sum</td></tr>
+<tr><td>\(\arg\min\)</td><td>"argument of the minimum"</td><td>The <i>minimizer</i> itself, not the minimal value</td></tr>
+<tr><td>\(\mathbb{1}[\cdot]\)</td><td>indicator</td><td>1 if the condition holds, else 0</td></tr>
+<tr><td>\(F^{-1}(\alpha)\), \(q_\alpha\)</td><td>quantile function</td><td>The value below which a fraction \(\alpha\) of the distribution lies</td></tr>
+<tr><td>\(\pi_j, \lambda, u, v, y\)</td><td>dual variables / multipliers</td><td>Shadow prices attached to constraints</td></tr>
+<tr><td>\(M\)</td><td>"big-M"</td><td>A large-enough constant that deactivates a constraint when its selector binary is off — keep it tight</td></tr>
+</table>
 </div>
 </details>
 </section>
