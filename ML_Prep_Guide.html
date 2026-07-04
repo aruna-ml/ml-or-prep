@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML Theory Interview Prep — DoorDash MLE Round 1</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --red:#FF6247; --red-dark:#FF8168; --red-bg:#3B1710;
+  --ink:#EAE6E1; --ink-soft:#AEA79F; --line:#3B3733;
+  --bg:#151312; --card:#1F1D1B; --accent-bg:#2B2825;
+  --blue:#7CB8E8; --blue-bg:#182B3D; --green:#69C489; --green-bg:#16301F;
+  --amber:#E3AC5C; --amber-bg:#332711;
+  --th-bg:#2E2B28; --th-fg:#F2EFEC; --row-alt:#262421; --form-bg:#1A1816;
+  --mono:'SF Mono',Consolas,'Liberation Mono',Menlo,monospace;
+}
+body.light{
+  --red:#EB1700; --red-dark:#B51200; --red-bg:#FFF0EE;
+  --ink:#191919; --ink-soft:#4a4a4a; --line:#e4e0dc;
+  --bg:#faf9f7; --card:#ffffff; --accent-bg:#f4f1ee;
+  --blue:#0e5fa8; --blue-bg:#eef5fc; --green:#1d7a3e; --green-bg:#eefaf0;
+  --amber:#a05a00; --amber-bg:#fdf6e7;
+  --th-bg:#191919; --th-fg:#ffffff; --row-alt:#f7f5f2; --form-bg:#fbfaf8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:20px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.65;font-size:16.5px}
+.layout{display:flex;max-width:1340px;margin:0 auto}
+nav#sidebar{position:sticky;top:0;height:100vh;width:288px;flex-shrink:0;overflow-y:auto;padding:26px 14px 40px 20px;border-right:1px solid var(--line);background:var(--card)}
+nav#sidebar .brand{font-weight:800;font-size:15px;color:var(--red);letter-spacing:.4px;text-transform:uppercase;margin-bottom:2px}
+nav#sidebar .brand-sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:18px}
+nav#sidebar a{display:block;padding:5px 10px;margin:1px 0;border-radius:7px;color:var(--ink-soft);text-decoration:none;font-size:13.5px;line-height:1.35}
+nav#sidebar a:hover{background:var(--accent-bg);color:var(--ink)}
+nav#sidebar a.active{background:var(--red-bg);color:var(--red-dark);font-weight:600}
+nav#sidebar .nav-group{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#9a938c;margin:16px 0 4px 10px}
+#navToggle{display:none;position:fixed;bottom:18px;right:18px;z-index:60;background:var(--red);color:#fff;border:none;border-radius:50%;width:52px;height:52px;font-size:22px;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer}
+main{flex:1;min-width:0;padding:34px 44px 120px}
+header.hero{background:linear-gradient(135deg,#1a1a1a 0%,#0b2a3d 60%,#0e5fa8 100%);color:#fff;border-radius:16px;padding:38px 40px;margin-bottom:30px}
+header.hero h1{font-size:30px;line-height:1.2;margin-bottom:10px}
+header.hero p{color:#d5e5f3;font-size:15.5px;max-width:820px}
+header.hero .chips{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+header.hero .chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 13px;font-size:12.5px}
+.toolbar{display:flex;gap:10px;align-items:center;margin:0 0 22px;flex-wrap:wrap}
+.toolbar button{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;color:var(--ink-soft);font-weight:600}
+.toolbar button:hover{border-color:var(--red);color:var(--red)}
+.toolbar .prog{font-size:13px;color:var(--ink-soft);margin-left:auto}
+section.topic{margin-bottom:26px;scroll-margin-top:16px}
+section.topic > h2{display:flex;align-items:center;gap:12px;font-size:23px;padding:10px 2px;border-bottom:3px solid var(--red);margin-bottom:16px}
+section.topic > h2 .num{background:var(--red);color:#fff;font-size:14px;border-radius:8px;min-width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+section.topic > h2 input[type=checkbox]{margin-left:auto;width:19px;height:19px;accent-color:var(--red);cursor:pointer}
+details.card{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+details.card summary{cursor:pointer;padding:14px 18px;font-weight:700;font-size:16.5px;list-style:none;display:flex;align-items:center;gap:10px;user-select:none}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary::before{content:'▸';color:var(--red);font-size:15px;transition:transform .15s;flex-shrink:0}
+details.card[open] summary::before{transform:rotate(90deg)}
+details.card summary:hover{background:var(--accent-bg)}
+details.card .body{padding:2px 22px 20px;border-top:1px solid var(--line)}
+details.card h4{margin:18px 0 6px;font-size:15.5px}
+details.card p{margin:9px 0}
+details.card ul,details.card ol{margin:8px 0 8px 24px}
+details.card li{margin:5px 0}
+.callout{border-radius:10px;padding:13px 17px;margin:14px 0;font-size:15px;border-left:4px solid}
+.callout .t{font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:4px}
+.tip{background:var(--green-bg);border-color:var(--green)} .tip .t{color:var(--green)}
+.warn{background:var(--amber-bg);border-color:var(--amber)} .warn .t{color:var(--amber)}
+.dd{background:var(--red-bg);border-color:var(--red)} .dd .t{color:var(--red)}
+.info{background:var(--blue-bg);border-color:var(--blue)} .info .t{color:var(--blue)}
+.formulation{background:var(--form-bg);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:14px 0;overflow-x:auto}
+.formulation .fl{font-weight:700;font-size:13px;color:var(--red-dark);text-transform:uppercase;letter-spacing:.6px;margin:10px 0 2px}
+.formulation .fl:first-child{margin-top:0}
+.katex{font-size:1.04em}
+.katex-display{margin:10px 0;overflow-x:auto;overflow-y:hidden;padding:4px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14.5px;background:var(--card)}
+th{background:var(--th-bg);color:var(--th-fg);text-align:left;padding:9px 12px;font-size:13px;letter-spacing:.3px}
+td{border:1px solid var(--line);padding:8px 12px;vertical-align:top}
+tr:nth-child(even) td{background:var(--row-alt)}
+code{font-family:var(--mono);font-size:.86em;background:var(--accent-bg);padding:2px 6px;border-radius:5px}
+pre{background:#211f1e;color:#eee8e2;border-radius:10px;padding:16px 18px;overflow-x:auto;font-size:13.5px;line-height:1.55;margin:14px 0}
+pre code{background:none;color:inherit;padding:0;font-size:inherit}
+.pill{display:inline-block;background:var(--accent-bg);border:1px solid var(--line);border-radius:999px;padding:1px 11px;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin:2px 3px 2px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:1020px){
+  nav#sidebar{position:fixed;left:0;top:0;z-index:50;transform:translateX(-100%);transition:transform .2s;box-shadow:4px 0 20px rgba(0,0,0,.12)}
+  nav#sidebar.open{transform:none}
+  #navToggle{display:block}
+  main{padding:20px 18px 90px}
+  .grid2{grid-template-columns:1fr}
+  header.hero{padding:26px 22px}
+}
+</style>
+</head>
+<body>
+<button id="navToggle" aria-label="Menu">☰</button>
+<div class="layout">
+<nav id="sidebar">
+  <div class="brand">ML Interview Prep</div>
+  <div class="brand-sub">DoorDash MLE · Traditional ML (70%) + DL basics (30%)</div>
+  <div class="nav-group">Foundations</div>
+  <a href="#s1">1 · ML fundamentals</a>
+  <a href="#s2">2 · Bias–variance &amp; generalization</a>
+  <a href="#s3">3 · Linear regression</a>
+  <a href="#s4">4 · Logistic regression</a>
+  <div class="nav-group">Trees &amp; Practice</div>
+  <a href="#s5">5 · Trees, bagging &amp; boosting</a>
+  <a href="#s6">6 · Feature engineering</a>
+  <a href="#s7">7 · Model training in practice</a>
+  <div class="nav-group">Evals &amp; Ops</div>
+  <a href="#s8">8 · Evaluation — the deep dive</a>
+  <a href="#s9">9 · Drift &amp; monitoring</a>
+  <a href="#s10">10 · Forecasting (classical + XGBoost)</a>
+  <div class="nav-group">Deep Learning</div>
+  <a href="#s11">11 · Neural nets &amp; backprop</a>
+  <a href="#s12">12 · SGD, optimizers &amp; regularization</a>
+  <div class="nav-group">System Design</div>
+  <a href="#s13">13 · DoorDash ML system design</a>
+  <a href="#s14">14 · Cheat sheet &amp; pitfalls</a>
+</nav>
+<main>
+<header class="hero">
+  <h1>Machine Learning Theory — Interview Study Guide</h1>
+  <p>A self-contained refresher for the DoorDash MLE interview loop: traditional ML in depth (fundamentals → linear models → trees/boosting → feature engineering → <b>evaluation</b> → drift → forecasting), deep learning essentials (nets, backprop, SGD), and DoorDash-flavored ML system design deep dives.</p>
+  <div class="chips">
+    <span class="chip">70% traditional ML</span>
+    <span class="chip">30% deep learning</span>
+    <span class="chip">Evals emphasized</span>
+    <span class="chip">Forecasting: ARIMA/ETS + XGBoost</span>
+    <span class="chip">System design deep dives</span>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button id="themeBtn" onclick="toggleTheme()">☀️ Light theme</button>
+  <button onclick="setAll(true)">Expand all</button>
+  <button onclick="setAll(false)">Collapse all</button>
+  <span class="prog" id="progLabel"></span>
+</div>
+
+<!-- ================================================================ -->
+<section class="topic" id="s1">
+<h2><span class="num">1</span>ML fundamentals<input type="checkbox" class="done" data-k="ml-s1" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>The learning problem, stated precisely</summary>
+<div class="body">
+<p><b>Supervised learning:</b> given samples \((x_i, y_i) \sim P(X,Y)\) i.i.d., find \(f\) in a hypothesis class \(\mathcal{F}\) minimizing expected loss on <i>unseen</i> data:</p>
+<div class="formulation">
+$$f^* = \arg\min_{f\in\mathcal{F}} \; \mathbb{E}_{(x,y)\sim P}\,[\,\ell(f(x), y)\,] \qquad\text{approximated by}\qquad \hat f = \arg\min_{f} \frac{1}{n}\sum_{i=1}^n \ell(f(x_i), y_i) + \lambda\,\Omega(f)$$
+</div>
+<p>Everything in ML practice lives in the gap between these two: the empirical average (training loss) vs. the expectation (generalization). \(\Omega(f)\) is a regularizer that penalizes complexity to close that gap.</p>
+<ul>
+<li><b>Regression:</b> \(y \in \mathbb{R}\), typical loss squared error — the optimal predictor is the conditional mean \(\mathbb{E}[Y|X=x]\). Absolute error ⇒ conditional <b>median</b>; pinball loss ⇒ conditional <b>quantile</b> (crucial for ETA promises and supply buffers — asymmetric costs need quantiles, not means).</li>
+<li><b>Classification:</b> \(y \in \{0,1,\dots\}\), loss log-loss/cross-entropy — the optimal scorer is the conditional probability \(P(Y=1|X=x)\). Predicting well-calibrated probabilities is more useful than predicting labels, because downstream systems threshold them differently per use case.</li>
+<li><b>Unsupervised:</b> structure without labels — clustering (k-means, DBSCAN), dimensionality reduction (PCA), density/anomaly detection. Mention-level fluency is enough for this loop.</li>
+</ul>
+<div class="callout info"><span class="t">Loss functions as beliefs</span>A loss function encodes what errors cost the business. Squared error punishes large mistakes quadratically (sensitive to outliers); absolute error is robust; Huber interpolates; pinball encodes asymmetry (being 10 min late on an ETA hurts more than 10 min early). Choosing the loss <i>is</i> a business decision — say this in interviews.</div>
+</div>
+</details>
+
+<details class="card">
+<summary>Maximum likelihood — the unifying view</summary>
+<div class="body">
+<p>Most classical losses are negative log-likelihoods under a noise model. Assume \(y = f(x) + \varepsilon\):</p>
+<table>
+<tr><th>Noise assumption</th><th>NLL ⇒ loss</th><th>Model family</th></tr>
+<tr><td>Gaussian \(\varepsilon \sim \mathcal N(0,\sigma^2)\)</td><td>Squared error</td><td>Linear regression / OLS</td></tr>
+<tr><td>Laplace</td><td>Absolute error</td><td>Median regression</td></tr>
+<tr><td>Bernoulli \(y\sim \text{Bern}(p(x))\)</td><td>Log loss (cross-entropy)</td><td>Logistic regression</td></tr>
+<tr><td>Poisson (counts)</td><td>Poisson deviance</td><td>Poisson GLM (order counts!)</td></tr>
+</table>
+<p>And regularization is <b>MAP estimation</b>: an L2 penalty is a Gaussian prior on weights; L1 is a Laplace prior. This one slide of understanding lets you answer "why this loss?" and "what does the penalty mean?" from first principles.</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Train / validation / test discipline &amp; cross-validation</summary>
+<div class="body">
+<ul>
+<li><b>Train</b> fits parameters; <b>validation</b> selects hyperparameters/models; <b>test</b> is touched once for the final unbiased estimate. Repeated peeking at test = information leak into modeling choices.</li>
+<li><b>k-fold cross-validation:</b> split into \(k\) folds; train on \(k-1\), validate on 1, rotate; average. Uses data efficiently and gives a variance estimate across folds. Typical \(k=5\).</li>
+<li><b>Stratified</b> folds preserve class ratios (imbalanced problems). <b>Grouped</b> folds keep entities (a customer, a store) entirely in one fold to prevent identity leakage.</li>
+<li><b>Time series must use temporal splits</b> — train on past, validate on future (rolling/expanding origin). Random shuffling leaks the future and inflates metrics badly (§10).</li>
+</ul>
+<div class="callout warn"><span class="t">Interview probe</span>"Your offline metrics were great but the model failed in prod — why?" Top causes to enumerate: leakage (features computed with post-outcome data), train/serve skew (different feature code paths online vs. offline), temporal validation done wrong, distribution shift between training window and live traffic, feedback loops from prior model's decisions shaping the data.</div>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s2">
+<h2><span class="num">2</span>Bias–variance &amp; generalization<input type="checkbox" class="done" data-k="ml-s2" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>The decomposition (be able to derive the idea)</summary>
+<div class="body">
+<p>For squared loss at a point \(x\), over resamplings of the training set \(D\):</p>
+<div class="formulation">
+$$\mathbb{E}_{D,\varepsilon}\big[(y - \hat f_D(x))^2\big] \;=\; \underbrace{\big(f(x) - \mathbb{E}_D[\hat f_D(x)]\big)^2}_{\text{bias}^2} \;+\; \underbrace{\mathbb{E}_D\big[(\hat f_D(x) - \mathbb{E}_D[\hat f_D(x)])^2\big]}_{\text{variance}} \;+\; \underbrace{\sigma^2}_{\text{irreducible noise}}$$
+</div>
+<ul>
+<li><b>Bias:</b> systematic error from a too-simple hypothesis class — the model is wrong <i>on average</i>. Linear model on curved reality.</li>
+<li><b>Variance:</b> sensitivity to the particular training sample — retrain on new data, get a different model. Deep tree memorizing noise.</li>
+<li><b>Noise:</b> the floor no model beats — genuine randomness in \(y\) given \(x\) (a Dasher hits every red light).</li>
+</ul>
+<p><b>The knobs:</b> more model capacity ⇒ bias ↓ variance ↑. More <b>data</b> ⇒ variance ↓ (bias unchanged). Regularization, bagging, feature selection ⇒ variance ↓ (bias ↑ slightly). Boosting rounds ⇒ bias ↓ (variance ↑ eventually).</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Diagnosis: learning curves &amp; the gap</summary>
+<div class="body">
+<table>
+<tr><th>Symptom</th><th>Diagnosis</th><th>Treatments</th></tr>
+<tr><td>Train error high, val ≈ train</td><td>High bias (underfit)</td><td>Bigger model, more/better features, less regularization, train longer</td></tr>
+<tr><td>Train error low, val ≫ train</td><td>High variance (overfit)</td><td>More data, regularization, early stopping, simpler model, bagging, feature pruning</td></tr>
+<tr><td>Both high, gap small</td><td>Bias + possibly noisy labels/features</td><td>Feature work usually beats model swaps</td></tr>
+<tr><td>Val fine, prod bad</td><td>Not bias/variance — shift or leakage</td><td>§9 monitoring, check pipelines</td></tr>
+</table>
+<p><b>Learning curves</b> (error vs. training-set size): converging high curves ⇒ bias-limited (more data won't help — say this, it's a classic probe); large persistent gap ⇒ variance-limited (more data will help).</p>
+<div class="callout tip"><span class="t">Modern nuance worth one sentence</span>Heavily overparameterized models (deep nets) can show <b>double descent</b> — test error can improve again past the interpolation point — so "more parameters ⇒ overfitting" isn't a law. Know it exists; don't lead with it.</div>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s3">
+<h2><span class="num">3</span>Linear regression<input type="checkbox" class="done" data-k="ml-s3" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>OLS: three ways to see it</summary>
+<div class="body">
+<div class="formulation">
+$$\hat\beta = \arg\min_\beta \|y - X\beta\|_2^2 = (X^\top X)^{-1} X^\top y \quad(\text{when } X^\top X \text{ invertible})$$
+</div>
+<ol>
+<li><b>Optimization view:</b> convex quadratic; gradient \(\nabla = -2X^\top(y - X\beta)\); setting to zero gives the <b>normal equations</b> \(X^\top X\beta = X^\top y\).</li>
+<li><b>Geometric view:</b> \(X\hat\beta\) is the orthogonal projection of \(y\) onto the column space of \(X\); residuals ⟂ features. This is why adding a feature correlated with existing ones changes coefficients (multicollinearity).</li>
+<li><b>Probabilistic view:</b> MLE under Gaussian noise (§1). Gauss–Markov: OLS is the best linear unbiased estimator under homoscedastic uncorrelated errors.</li>
+</ol>
+<h4>Assumptions and what breaks when they fail</h4>
+<ul>
+<li><b>Linearity</b> in parameters (you can still use nonlinear <i>features</i>). Fails ⇒ bias; fix with feature transforms, splines, or move to trees/GBMs.</li>
+<li><b>Independent errors.</b> Fails with time series/groups ⇒ standard errors wrong; use grouped/temporal CV and robust SEs.</li>
+<li><b>Homoscedasticity.</b> Fails (variance grows with mean, common in delivery times) ⇒ weighted least squares or model \(\log y\).</li>
+<li><b>No perfect multicollinearity.</b> Near-collinearity ⇒ huge, unstable coefficients with flipped signs; predictions can still be fine. Detect with VIF; fix by dropping/combining features or ridge.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Ridge, lasso &amp; elastic net</summary>
+<div class="body">
+<div class="formulation">
+$$\text{Ridge: } \min \|y - X\beta\|^2 + \lambda\|\beta\|_2^2 \Rightarrow \hat\beta = (X^\top X + \lambda I)^{-1}X^\top y \qquad \text{Lasso: } \min \|y - X\beta\|^2 + \lambda\|\beta\|_1$$
+</div>
+<ul>
+<li><b>Ridge (L2):</b> shrinks coefficients smoothly toward zero, never exactly zero; handles collinearity (adds \(\lambda\) to eigenvalues, always invertible); one strong feature split into two correlated copies gets its weight <i>shared</i>.</li>
+<li><b>Lasso (L1):</b> produces exact zeros ⇒ embedded feature selection. Geometric intuition: the L1 ball has corners on the axes, and the loss contours typically touch a corner. Among correlated features it picks one arbitrarily — unstable selection; elastic net (L1+L2) fixes this.</li>
+<li>Standardize features first (penalties are scale-sensitive); don't penalize the intercept; tune \(\lambda\) by CV.</li>
+<li>Bias–variance link: \(\lambda\) ↑ ⇒ bias ↑ variance ↓ — regularization is the canonical variance-reduction dial.</li>
+</ul>
+<div class="callout tip"><span class="t">Interview one-liner</span>"Why might a coefficient have the 'wrong' sign?" — collinearity, omitted-variable bias/confounding, or Simpson's paradox across mixed segments. Regression coefficients are <i>not</i> causal effects without a causal design; for decisions like incentive sizing you want uplift/causal modeling, not raw regression.</div>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s4">
+<h2><span class="num">4</span>Logistic regression<input type="checkbox" class="done" data-k="ml-s4" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Model, loss, gradient — cold</summary>
+<div class="body">
+<div class="formulation">
+<div class="fl">Model</div>
+$$P(y=1\mid x) = \sigma(w^\top x) = \frac{1}{1 + e^{-w^\top x}} \qquad \text{log-odds: } \; \log\frac{p}{1-p} = w^\top x$$
+<div class="fl">Loss (negative log-likelihood over data) — convex</div>
+$$\mathcal{L}(w) = -\sum_i \big[ y_i \log p_i + (1-y_i)\log(1 - p_i) \big] + \lambda\|w\|^2$$
+<div class="fl">Gradient (memorize — it's beautiful)</div>
+$$\nabla_w \mathcal{L} = \sum_i (p_i - y_i)\, x_i$$
+</div>
+<ul>
+<li>The gradient is "(prediction error) × features" — identical in form to linear regression's; this is the GLM pattern, and it's also exactly the last-layer gradient in a neural net classifier (§11).</li>
+<li>No closed form; fit by gradient descent or Newton/IRLS. Convex ⇒ global optimum.</li>
+<li><b>Coefficient reading:</b> \(e^{w_j}\) is the odds multiplier per unit of \(x_j\). "Each extra km of distance multiplies odds of cancellation by 1.15."</li>
+<li>Perfect separation ⇒ weights diverge to ∞; regularization fixes it (know this classic gotcha).</li>
+<li><b>Multiclass:</b> softmax \(p_k = e^{w_k^\top x}/\sum_c e^{w_c^\top x}\) with cross-entropy — same gradient pattern \((p - \text{onehot}(y))\,x\).</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Calibration &amp; thresholds — where logistic earns its keep</summary>
+<div class="body">
+<ul>
+<li>Logistic regression trained on log-loss is usually <b>well-calibrated</b> out of the box: among cases scored 0.3, ~30% are positive. Boosted trees and deep nets often are not ⇒ post-hoc <b>Platt scaling</b> (fit a logistic on the scores) or <b>isotonic regression</b> on a held-out set.</li>
+<li>Why calibration matters at DoorDash-like companies: scores feed <b>expected-value decisions</b> — e.g., expected lateness cost \(= p(\text{late}) \times \text{cost}\), fraud expected loss, acceptance probability inside dispatch. Miscalibrated probabilities corrupt every downstream optimization even if ranking (AUC) is perfect.</li>
+<li><b>Threshold choice is economics, not ML:</b> choose the operating point from the cost matrix — threshold \(t^* = \frac{c_{FP}}{c_{FP}+c_{FN}}\) for calibrated scores minimizing expected cost. Say "the model outputs probabilities; the business chooses thresholds per use case."</li>
+<li>Measure calibration with <b>reliability curves</b> and <b>Brier score</b> \(= \frac1n\sum(p_i - y_i)^2\) (§8).</li>
+</ul>
+<div class="callout tip"><span class="t">Why logistic still matters</span>Strong baseline, interpretable, trivially cheap at serve time, well-calibrated, and debuggable. The professional take: "I'd baseline with regularized logistic on good features; it often gets within a few points of GBM and tells us what signal exists — then justify complexity by the gap."</div>
+</div>
+</details>
+</section>
+<!-- ================================================================ -->
+<section class="topic" id="s5">
+<h2><span class="num">5</span>Tree-based models: bagging &amp; boosting<input type="checkbox" class="done" data-k="ml-s5" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Decision trees (CART) — the base learner</summary>
+<div class="body">
+<p>Greedy recursive partitioning: at each node, choose the feature-threshold split that most reduces impurity; predict the leaf mean (regression) or class distribution (classification).</p>
+<div class="formulation">
+<div class="fl">Split criteria</div>
+$$\text{Gini: } \sum_k p_k(1-p_k) \qquad \text{Entropy: } -\sum_k p_k \log p_k \qquad \text{Regression: variance reduction (SSE)}$$
+</div>
+<ul>
+<li><b>Strengths:</b> nonlinearities and interactions for free; no scaling needed; mixed feature types; interpretable when small.</li>
+<li><b>Weaknesses:</b> high variance (small data changes ⇒ different tree); axis-aligned splits struggle with smooth diagonal boundaries; poor at <b>extrapolation</b> — a tree predicts constants outside the training range (major caveat for forecasting trends, §10).</li>
+<li>Control complexity via max depth, min samples per leaf, or cost-complexity pruning.</li>
+</ul>
+<p>Trees are rarely deployed alone. Two opposite ways to combine them fix their flaws: <b>bagging</b> attacks variance; <b>boosting</b> attacks bias.</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Bagging &amp; Random Forests — variance reduction by averaging</summary>
+<div class="body">
+<p><b>Bagging:</b> train \(B\) deep trees on bootstrap resamples; average predictions (or vote). Averaging \(B\) estimators with variance \(\sigma^2\) and pairwise correlation \(\rho\) gives:</p>
+<div class="formulation">
+$$\operatorname{Var}(\bar f) = \rho\,\sigma^2 + \frac{1-\rho}{B}\,\sigma^2$$
+</div>
+<p>As \(B\to\infty\), only the <b>correlation term survives</b> — so the game is decorrelating trees. <b>Random Forest</b> adds the trick: at each split, consider only a random subset of \(m\) features (\(\sqrt{p}\) classification, \(p/3\) regression) ⇒ trees differ more ⇒ \(\rho\) drops ⇒ ensemble variance drops. That formula-plus-story is the complete answer to "why do random forests work?"</p>
+<ul>
+<li><b>OOB (out-of-bag) error:</b> each tree leaves out ~37% of samples (\(\lim (1-1/n)^n = e^{-1}\)); evaluate each point on trees that didn't see it — free cross-validation.</li>
+<li>Nearly tuning-free, parallelizable, robust to noise, hard to overfit by adding trees (more trees ⇒ variance ↓ monotonic).</li>
+<li>Bias stays ≈ single deep tree's bias — RF doesn't fix underfitting.</li>
+</ul>
+</div>
+</details>
+
+<details class="card" open>
+<summary>Gradient boosting — the math, done properly</summary>
+<div class="body">
+<p><b>Idea:</b> build an additive model stagewise, each new tree fitting the <i>error signal</i> of the current ensemble:</p>
+<div class="formulation">
+<div class="fl">Additive model, greedy stagewise fitting</div>
+$$F_M(x) = \sum_{m=1}^{M} \eta\, h_m(x), \qquad h_m = \arg\min_h \sum_i \ell\big(y_i,\; F_{m-1}(x_i) + h(x_i)\big)$$
+<div class="fl">Functional gradient descent: fit \(h_m\) to the negative gradient (pseudo-residuals)</div>
+$$r_i^{(m)} = -\left.\frac{\partial\, \ell(y_i, F)}{\partial F}\right|_{F = F_{m-1}(x_i)} \qquad \text{squared loss} \Rightarrow r_i = y_i - F_{m-1}(x_i)\ \text{(plain residuals)}$$
+</div>
+<p>So gradient boosting = <b>gradient descent in function space</b>, where each step is a small tree. Log-loss ⇒ pseudo-residuals are \(y_i - p_i\) (same "error × step" pattern again). The learning rate \(\eta\) (shrinkage, 0.05–0.3) trades more trees for better generalization.</p>
+<h4>XGBoost specifics (know these — it's on your resume and theirs)</h4>
+<div class="formulation">
+<div class="fl">Second-order objective with explicit regularization (per boosting round)</div>
+$$\text{Obj} \approx \sum_i \big[ g_i\, h(x_i) + \tfrac12 \, h_i\, h(x_i)^2 \big] + \gamma T + \tfrac12 \lambda \sum_{t=1}^{T} w_t^2$$
+<p>\(g_i, h_i\): first/second derivatives of the loss; \(T\): number of leaves; \(w_t\): leaf weights.</p>
+<div class="fl">Closed-form optimal leaf weight and split gain</div>
+$$w_t^* = -\frac{\sum_{i\in t} g_i}{\sum_{i\in t} h_i + \lambda} \qquad \text{Gain} = \tfrac12\!\left[\frac{G_L^2}{H_L+\lambda} + \frac{G_R^2}{H_R+\lambda} - \frac{(G_L+G_R)^2}{H_L+H_R+\lambda}\right] - \gamma$$
+</div>
+<ul>
+<li>Second-order (Newton-like) step ⇒ better trees per round than first-order; any twice-differentiable loss plugs in (quantile≈, Poisson, ranking losses).</li>
+<li>Regularization is <i>inside</i> the split criterion (\(\lambda\) shrinks leaf weights, \(\gamma\) is a per-leaf complexity charge ⇒ built-in pruning).</li>
+<li><b>Missing values:</b> each split learns a default direction — missingness becomes signal, no imputation required.</li>
+<li>Histogram-based approximate splits (like LightGBM) for speed; column/row subsampling for decorrelation; monotonic constraints (force prediction ↑ in distance — great for sanity/regulatory needs).</li>
+<li>Key knobs: <code>n_estimators</code> + <code>learning_rate</code> (with early stopping), <code>max_depth</code> (3–8), <code>min_child_weight</code>, <code>subsample</code>/<code>colsample_bytree</code>, <code>lambda/alpha</code>. Tune with early stopping on a temporal validation set.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Bagging vs. boosting — the compare-and-contrast they will ask</summary>
+<div class="body">
+<table>
+<tr><th></th><th>Random Forest (bagging)</th><th>GBM / XGBoost (boosting)</th></tr>
+<tr><td>Attacks</td><td>Variance</td><td>Bias (then variance if overdone)</td></tr>
+<tr><td>Trees</td><td>Deep, independent, parallel</td><td>Shallow, sequential, each corrects the last</td></tr>
+<tr><td>Overfitting risk</td><td>Low; more trees never hurt (much)</td><td>Real; needs early stopping + shrinkage</td></tr>
+<tr><td>Tuning effort</td><td>Minimal</td><td>Moderate — and worth it</td></tr>
+<tr><td>Noisy labels</td><td>Robust</td><td>Can chase noise (residuals include it)</td></tr>
+<tr><td>Typical accuracy on tabular</td><td>Strong</td><td>Usually the winner</td></tr>
+</table>
+<ul>
+<li>Trees don't extrapolate — for trending targets, model the <i>detrended</i> signal or add trend features (§10).</li>
+<li><b>Feature importance caveats:</b> gain-based importance biased toward high-cardinality features and splits correlated features arbitrarily; prefer permutation importance or SHAP, and note SHAP explains the model, <i>not</i> causality.</li>
+<li>Why GBMs beat deep nets on tabular data (usually): heterogeneous features, irregular interactions, modest data sizes, and trees' inductive bias for sharp thresholds fit tabular reality; DL wins with huge data or unstructured/sequence inputs — a balanced take here reads as senior.</li>
+</ul>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s6">
+<h2><span class="num">6</span>Feature engineering<input type="checkbox" class="done" data-k="ml-s6" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>The catalog (organized by data type)</summary>
+<div class="body">
+<h4>Numeric</h4>
+<ul>
+<li>Scaling (standardize/min-max) — required for linear/NN/distance models; irrelevant for trees.</li>
+<li>Log/Box-Cox for heavy-tailed (order values, distances, wait times); winsorize outliers; binning for interpretable nonlinearity.</li>
+<li>Ratios and interactions encode domain knowledge: items-per-order, tip-per-mile, subtotal/basket-size.</li>
+</ul>
+<h4>Categorical</h4>
+<ul>
+<li>One-hot: fine to ~50 levels; explodes beyond.</li>
+<li><b>Target encoding</b> (mean of \(y\) per category): powerful for high-cardinality (store ID, zip) but the #1 leakage source — must compute <b>out-of-fold</b> and with <b>smoothing</b> toward the global mean for rare levels: \(\tilde y_c = \frac{n_c \bar y_c + \alpha \bar y}{n_c + \alpha}\).</li>
+<li>Frequency encoding; hashing trick (fixed dimension, collisions acceptable); learned <b>embeddings</b> when using NNs — store/item embeddings capture similarity ("this new thai place behaves like these others").</li>
+</ul>
+<h4>Temporal (huge for delivery problems)</h4>
+<ul>
+<li>Cyclic encoding: \(\sin/\cos(2\pi\,\text{hour}/24)\) so 23:00 and 00:00 are close; day-of-week, is-holiday, is-game-day.</li>
+<li>Lags and rolling windows: store's average prep time over trailing 7/28 days, same hour-of-week last week (§10).</li>
+<li>"Time since" features: minutes since order placed, since Dasher's last delivery.</li>
+</ul>
+<h4>Geospatial</h4>
+<ul>
+<li>Haversine vs. <i>road</i> distance; geohash/H3 cell IDs as categoricals; zone-level aggregates (demand density, average parking time); weather joins.</li>
+</ul>
+<h4>Aggregates / "entity profile" features</h4>
+<ul>
+<li>Historical behavior per store/Dasher/customer: acceptance rate, mean prep-time error, cancellation rate. Compute with a <b>time cutoff</b> (only data before the prediction moment) — the classic leakage trap.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Leakage — the career-limiting bug (interview favorite)</summary>
+<div class="body">
+<p><b>Leakage:</b> information available at training time that won't exist (or isn't known yet) at prediction time. Offline metrics soar; production craters.</p>
+<ul>
+<li><b>Target leakage:</b> features computed <i>after</i> the outcome (e.g., "actual delivery duration" fields, refund flags in a fraud model that only get set post-investigation).</li>
+<li><b>Temporal leakage:</b> aggregates computed over the whole dataset including the future ("store average rating" including the very order you're predicting).</li>
+<li><b>Group leakage:</b> the same customer/store in train and test ⇒ the model memorizes identity; use grouped splits.</li>
+<li><b>Train/serve skew:</b> offline features from batch tables, online from a different codepath ⇒ silent distribution differences. Mitigation: a <b>feature store</b> with the same computation for both, plus point-in-time-correct backfills; log the served features and train on the logs.</li>
+</ul>
+<div class="callout tip"><span class="t">Detection heuristics</span>Too-good-to-be-true metrics; one feature dominating importance; a "future-dated" audit of each feature's availability timestamp; and backtesting with strict point-in-time joins. Say: "for every feature, I ask — at the millisecond of prediction, is this value known, and is it computed by the same code online?"</div>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s7">
+<h2><span class="num">7</span>Model training in practice<input type="checkbox" class="done" data-k="ml-s7" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Hyperparameter tuning &amp; early stopping</summary>
+<div class="body">
+<ul>
+<li><b>Search strategies:</b> grid (wasteful beyond 2–3 params) → <b>random search</b> (provably better coverage of what matters) → Bayesian/TPE (Optuna, Hyperopt) with successive halving/Hyperband for compute efficiency.</li>
+<li><b>Early stopping</b> (GBMs and NNs): monitor validation loss, stop after \(k\) rounds without improvement. It's regularization — effectively selects model complexity on the validation set.</li>
+<li>Budget hierarchy worth reciting: <b>better features &gt; more/cleaner data &gt; hyperparameters &gt; architecture swaps</b> — tuning gives the last few percent, not the first twenty.</li>
+<li>Reproducibility: fixed seeds, versioned data/features/configs (the "model registry + data lineage" sentence belongs in any system-design answer).</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Class imbalance, done right</summary>
+<div class="body">
+<ul>
+<li>First question: <i>do you need labels or probabilities?</i> For decisions, keep the natural distribution, train on log-loss, and choose the <b>threshold from costs</b> (§4). Rebalancing distorts calibration.</li>
+<li>Techniques when needed: class weights (<code>scale_pos_weight</code> in XGBoost ≈ neg/pos ratio), undersample majority (fast, loses data), oversample/SMOTE (careful: synthetic points can cross class manifolds; never before a temporal split).</li>
+<li><b>Metrics:</b> accuracy is meaningless at 1% positives; use PR-AUC, recall@precision, or cost-weighted expected loss (§8).</li>
+<li>If you rebalance or subsample negatives, <b>recalibrate</b>: adjust the intercept by \(\log(\pi_{\text{true}}/\pi_{\text{train}})\) odds correction or Platt-scale on an unbalanced holdout.</li>
+</ul>
+<div class="callout dd"><span class="t">DoorDash flavor</span>Fraud, cancellations, and severe-lateness prediction are all rare-event problems. A strong answer: "train on full data with class weights, evaluate PR-AUC and recall at the precision the ops team can action, calibrate scores, and set thresholds by expected cost — fraud reviews cost \$X, missed fraud costs \$Y."</div>
+</div>
+</details>
+
+<details class="card">
+<summary>From notebook to production — the training pipeline</summary>
+<div class="body">
+<ol>
+<li><b>Data:</b> point-in-time-correct feature extraction; train/val/test with temporal boundaries; data validation (schema, ranges, null rates — e.g., Great Expectations).</li>
+<li><b>Training:</b> deterministic pipeline (data snapshot → features → model artifact); track experiments (MLflow/W&amp;B); baseline first (persistence/logistic/last-week's-value).</li>
+<li><b>Pre-deployment evaluation:</b> offline metrics per segment (not just global!), calibration, backtest vs. incumbent, latency/memory profile.</li>
+<li><b>Deployment:</b> shadow mode (score live traffic, no actions) → canary/small A/B → full rollout; keep instant rollback to the previous artifact.</li>
+<li><b>Retraining cadence:</b> scheduled (daily/weekly) or trigger-based on drift alarms (§9); always re-run the same eval gate before promotion.</li>
+</ol>
+<p>Segment-level evaluation deserves emphasis: a global MAE improvement can hide a regression in one metro or at dinner peak — the exact story interviewers want when they ask "your metric improved but complaints rose — why?"</p>
+</div>
+</details>
+</section>
+<!-- ================================================================ -->
+<section class="topic" id="s8">
+<h2><span class="num">8</span>Evaluation — the deep dive<input type="checkbox" class="done" data-k="ml-s8" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Classification metrics: what each one actually measures</summary>
+<div class="body">
+<div class="formulation">
+$$\text{Precision} = \frac{TP}{TP+FP} \quad \text{Recall (TPR)} = \frac{TP}{TP+FN} \quad \text{FPR} = \frac{FP}{FP+TN} \quad F_1 = \frac{2PR}{P+R}$$
+</div>
+<ul>
+<li><b>ROC-AUC:</b> area under TPR-vs-FPR across thresholds = probability a random positive scores above a random negative (rank quality). <b>Insensitive to class imbalance</b> and to calibration — a model can have AUC 0.95 and useless probabilities.</li>
+<li><b>PR-AUC:</b> precision vs. recall; <b>use for rare positives</b> — with 0.5% fraud, FPR barely moves when false positives explode, but precision collapses. PR-AUC shows it; ROC hides it. The baseline PR-AUC equals the positive rate (know this).</li>
+<li><b>Log loss / Brier:</b> proper scoring rules — reward calibrated probabilities, not just ranking. Brier decomposes into calibration + refinement.</li>
+<li><b>Calibration:</b> reliability diagram (predicted-prob buckets vs. observed frequency), Expected Calibration Error. Essential whenever scores enter expected-value math (§4).</li>
+<li><b>Operating-point metrics:</b> recall @ fixed precision (ops capacity), precision @ k (review queue of k cases/day) — usually the metric the business actually feels.</li>
+</ul>
+<div class="callout warn"><span class="t">Interview probe</span>"ROC-AUC improved but the product got worse — how?" Possible answers: imbalance made ROC insensitive to the FP flood (check PR); calibration degraded while ranking improved; gains concentrated in a segment that doesn't matter while a critical segment regressed; or the offline label ≠ the online outcome (proxy mismatch).</div>
+</div>
+</details>
+
+<details class="card">
+<summary>Regression &amp; forecast metrics</summary>
+<div class="body">
+<table>
+<tr><th>Metric</th><th>Formula</th><th>Character / gotcha</th></tr>
+<tr><td>MAE</td><td>\(\frac1n\sum|e_i|\)</td><td>Robust, in target units; optimal predictor = median</td></tr>
+<tr><td>RMSE</td><td>\(\sqrt{\frac1n\sum e_i^2}\)</td><td>Punishes large errors; outlier-sensitive; optimal = mean</td></tr>
+<tr><td>MAPE</td><td>\(\frac{100}n\sum\frac{|e_i|}{|y_i|}\)</td><td>Undefined at 0; <b>asymmetric</b> — favors under-forecasting; dangerous for low-volume series</td></tr>
+<tr><td>wMAPE</td><td>\(\frac{\sum|e_i|}{\sum|y_i|}\)</td><td>Volume-weighted; the practical default for demand forecasting</td></tr>
+<tr><td>Quantile (pinball)</td><td>\(\max(\tau e, (\tau{-}1)e)\)</td><td>Evaluates quantile forecasts; asymmetric by design</td></tr>
+<tr><td>R²</td><td>\(1 - \frac{SSE}{SST}\)</td><td>Relative to mean baseline; can be negative; inflated by trends in time series</td></tr>
+</table>
+<ul>
+<li><b>Match the metric to the decision:</b> ETA shown to customer → penalize lateness more (quantile at τ≈0.7–0.9, or asymmetric cost); demand forecast for staffing → wMAPE + a quantile for the buffer; pricing model → calibration of expected values.</li>
+<li>Always report against a <b>naive baseline</b> (last value, seasonal naive, global mean): "12% wMAPE" is meaningless until you say the seasonal-naive is 18%.</li>
+<li>Evaluate <b>by segment and horizon</b>: per-store, per-daypart, per-horizon curves — averages hide the failures that page you at dinner rush.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Ranking metrics (for search / recs questions)</summary>
+<div class="body">
+<ul>
+<li><b>Precision@k / Recall@k:</b> relevance in the top-k slate.</li>
+<li><b>NDCG@k:</b> graded relevance with log-position discount \(\sum \frac{2^{rel_i}-1}{\log_2(i+1)}\), normalized by the ideal ordering — the standard for search.</li>
+<li><b>MRR:</b> mean reciprocal rank of the first relevant item — "how fast do users hit something good".</li>
+<li>Offline ranking labels come from clicks/conversions ⇒ <b>position bias</b> (items shown higher get clicked more regardless of relevance): mitigate with randomization ("golden" traffic), inverse-propensity weighting, or counterfactual estimators — dropping this shows real depth.</li>
+</ul>
+</div>
+</details>
+
+<details class="card" open>
+<summary>Offline → online: the evaluation funnel</summary>
+<div class="body">
+<ol>
+<li><b>Offline backtest</b> on held-out (temporally later) data vs. incumbent + naive baseline, segmented. Gate: no critical-segment regression.</li>
+<li><b>Shadow mode:</b> deploy alongside prod, score real traffic, log — measures feature availability, latency, score distributions on live data, agreement with incumbent. Catches train/serve skew before users do.</li>
+<li><b>A/B test:</b> randomize (users, or better for marketplace effects: <b>geo/time-split randomization</b>), power the test in advance, run full weekly cycles, monitor guardrails.</li>
+<li><b>Holdback:</b> keep a small control after launch to measure long-term effect and detect slow degradation.</li>
+</ol>
+<h4>A/B testing essentials you must be able to discuss</h4>
+<ul>
+<li>Primary metric + <b>guardrails</b> (cancellations, Dasher earnings, latency); pre-registered; power analysis determines duration — peeking inflates false positives (or use sequential tests).</li>
+<li><b>Interference/network effects:</b> in a marketplace, treating some orders changes the Dasher pool available to control orders — classic SUTVA violation. Remedy: <b>switchback tests</b> (randomize region×time-window units), cluster-randomize by geo. This is THE marketplace-experimentation answer at DoorDash — their dispatch changes are evaluated with switchbacks.</li>
+<li>Offline gains ≠ online gains: feedback loops, position bias, and proxy-label mismatch. State that you treat offline evals as a <i>filter</i>, online as the <i>verdict</i>.</li>
+</ul>
+<div class="callout dd"><span class="t">DoorDash flavor</span>Example metric ladder for an ETA model: offline = quantile loss + calibration by segment/horizon; shadow = feature coverage, p99 latency, score drift; online switchback = on-time rate, customer CSAT/cancellations, order conversion (ETAs shown at checkout affect ordering!); guardrails = Dasher utilization. Showing you can build this ladder for any problem is the "evals maturity" they're screening for.</div>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s9">
+<h2><span class="num">9</span>Model drift &amp; monitoring<input type="checkbox" class="done" data-k="ml-s9" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Taxonomy of drift (with the right vocabulary)</summary>
+<div class="body">
+<ul>
+<li><b>Data/covariate drift:</b> \(P(X)\) changes, \(P(Y|X)\) stable — new metro launches, holiday mix, weather regime. Model may still be fine where it has support.</li>
+<li><b>Label/prior drift:</b> \(P(Y)\) changes — fraud rate doubles after a fraud ring arrives.</li>
+<li><b>Concept drift:</b> \(P(Y|X)\) changes — the same features now mean something else (post-COVID prep times; a new Dasher pay policy changes acceptance behavior). Retraining on recent data is the only fix.</li>
+<li><b>Upstream/schema drift:</b> a pipeline bug, unit change, or a feature silently going null — in practice the most common "drift" is a broken join, not a changed world. Monitor <b>feature health</b> (null rates, ranges) first.</li>
+<li><b>Feedback loops:</b> the model's own actions shape future training data (only offers you make generate acceptance labels). Mitigate with exploration/holdbacks and by logging the action taken.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Detection: statistics &amp; dashboards</summary>
+<div class="body">
+<div class="formulation">
+<div class="fl">PSI (Population Stability Index) — industry standard per feature/score</div>
+$$\text{PSI} = \sum_{b} (a_b - e_b)\,\ln\frac{a_b}{e_b} \qquad a_b, e_b: \text{actual/expected share in bucket } b$$
+<p>Rules of thumb: &lt; 0.1 stable · 0.1–0.25 investigate · &gt; 0.25 significant shift.</p>
+</div>
+<ul>
+<li>Alternatives: KS test (continuous), chi-square (categorical), Jensen–Shannon divergence (symmetric, bounded). At big-data scale, statistical tests trigger on trivial differences — use effect-size thresholds (like PSI) not p-values. Saying that is a senior-signal.</li>
+<li><b>Monitor in layers:</b> (1) input feature distributions + health; (2) score distribution (mean, quantiles) — shifts here predict trouble before labels arrive; (3) <b>delayed performance</b> once labels mature (deliveries: minutes; fraud: weeks — design metrics around label latency); (4) business KPIs and guardrails.</li>
+<li>Slice everything by segment (region, daypart, platform); global stability can mask offsetting segment drifts.</li>
+</ul>
+<h4>Response playbook</h4>
+<ol>
+<li>Triage: pipeline bug vs. real-world shift (check feature health first!).</li>
+<li>Retrain on a recent window (sliding) or reweight recent data; consider dropping poisoned periods (outages, promos).</li>
+<li>Evaluate through the same gate (§7), ship via shadow → canary.</li>
+<li>If drift is fast/recurring: shorten retrain cadence, or move volatile signal into features the model reads at serve time (e.g., real-time load features) instead of baking it into weights.</li>
+</ol>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s10">
+<h2><span class="num">10</span>Forecasting — classical models &amp; XGBoost<input type="checkbox" class="done" data-k="ml-s10" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Time-series anatomy &amp; the baselines that must be beaten</summary>
+<div class="body">
+<p>Decompose: \(y_t = \text{trend} + \text{seasonality} + \text{holidays/events} + \text{remainder}\) (additive; multiplicative when amplitude scales with level — take logs). Food delivery demand has <b>strong multiple seasonality</b>: hour-of-day (lunch/dinner peaks), day-of-week (weekend), plus holidays, weather, and sports events.</p>
+<ul>
+<li><b>Stationarity:</b> constant mean/variance/autocovariance over time. Classical models need it — difference away trend (\(\Delta y_t\)), seasonal-difference (\(\Delta_{168}\) for hourly-weekly), log for variance. Test: ADF (unit root).</li>
+<li><b>ACF/PACF:</b> autocorrelation diagnostics — spikes at lag 168 (hourly data) reveal weekly seasonality; used to pick ARIMA orders.</li>
+<li><b>Naive baselines</b> (report these always): persistence \(\hat y_{t+1} = y_t\); <b>seasonal naive</b> \(\hat y_{t+h} = y_{t+h-168}\) ("same hour last week") — shockingly hard to beat for delivery demand; that's the bar every fancy model must clear.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Classical models: ETS &amp; ARIMA (working fluency)</summary>
+<div class="body">
+<h4>Exponential smoothing (ETS)</h4>
+<div class="formulation">
+<div class="fl">Simple: level only</div>
+$$\hat y_{t+1} = \alpha y_t + (1-\alpha)\hat y_t \quad \text{(EWMA; } \alpha \text{ = how fast you forget)}$$
+<div class="fl">Holt-Winters: level + trend + seasonality (the useful one)</div>
+$$\ell_t = \alpha \frac{y_t}{s_{t-m}} + (1-\alpha)(\ell_{t-1} + b_{t-1}),\quad b_t = \beta(\ell_t - \ell_{t-1}) + (1-\beta) b_{t-1},\quad s_t = \gamma \frac{y_t}{\ell_t} + (1-\gamma)s_{t-m}$$
+</div>
+<p>Robust, cheap, interpretable — excellent per-store baseline at scale (fit thousands independently).</p>
+<h4>ARIMA(p, d, q) × seasonal (P, D, Q)ₘ</h4>
+<div class="formulation">
+$$\text{AR}(p):\; y_t = \sum_{i=1}^{p}\phi_i y_{t-i} + \varepsilon_t \qquad \text{MA}(q):\; y_t = \varepsilon_t + \sum_{j=1}^{q}\theta_j \varepsilon_{t-j} \qquad d:\ \text{differencing order}$$
+</div>
+<p>AR = momentum from past values; MA = correction from past shocks; I = differencing to stationarity. Fit by MLE; select orders via ACF/PACF or AIC (auto-ARIMA). Add external regressors (weather, promos) ⇒ ARIMAX. Strengths: principled <b>prediction intervals</b>, small-data efficiency. Limits: per-series fitting, linear dynamics, awkward with multiple seasonalities (then: STL decomposition + ARIMA on remainder, or Prophet-style curve fitting — worth naming both).</p>
+</div>
+</details>
+
+<details class="card" open>
+<summary>Forecasting with XGBoost (the must-know recipe)</summary>
+<div class="body">
+<p>Reframe forecasting as supervised regression on a feature table — one global model across all series (stores × zones), which is the industrial pattern:</p>
+<div class="formulation">
+<div class="fl">Feature recipe for target \(y_{s,t+h}\) (series s, horizon h)</div>
+<p><b>Lags:</b> \(y_{s,t}, y_{s,t-1}, \ldots, y_{s,t-168}\) (incl. same-hour-last-week) · <b>Rolling stats:</b> mean/median/std/min/max over 3h/24h/7d windows · <b>Calendar:</b> hour (sin/cos), day-of-week, holidays, events · <b>Exogenous:</b> weather forecast, promos, new-store flags · <b>Entity:</b> store/zone ID (target-encoded or categorical), store age, cuisine.</p>
+</div>
+<ul>
+<li><b>Multi-horizon strategies:</b> (a) <b>recursive</b> — one one-step model fed back; error compounds; (b) <b>direct</b> — separate model per horizon (or horizon-as-feature); more robust, standard choice; (c) seq2seq NNs when horizons are long and data huge.</li>
+<li><b>Validation:</b> rolling-origin backtests only (train ≤ t, test t+1…t+h; slide forward). Never random K-fold. Beware rolling features that peek across the split boundary.</li>
+<li><b>Trend caveat:</b> trees can't extrapolate beyond seen values (§5). For growing markets: predict <i>growth/differences</i>, normalize by a trailing average, or hybrid — linear/ETS captures trend, XGBoost models the (stationary) residual. Interviewers love this exact point.</li>
+<li><b>Probabilistic output:</b> quantile regression (pinball loss) at τ = 0.1/0.5/0.9 — supply planning needs the <b>distribution</b>, not the mean (§ newsvendor logic in staffing: staff to the fractile that balances under- vs. over-supply cost).</li>
+<li>Global-vs-local: one global model shares strength across sparse series (new stores!) and beats per-series ARIMA when you have many related series + rich covariates; per-series classical wins for few, long, clean series. State the tradeoff, don't pick dogmatically.</li>
+</ul>
+<div class="callout dd"><span class="t">DoorDash flavor</span>Canonical prompt: "Forecast orders per zone per 30-min bucket, 1–24h ahead, to plan Dasher incentives." Strong answer skeleton: global XGBoost, direct multi-horizon, features as above; wMAPE + pinball vs. seasonal-naive baseline, rolling-origin backtest by zone/daypart; quantiles feed the staffing optimizer; monitor with PSI + horizon-sliced wMAPE; retrain daily; cold-start zones via similar-zone pooling. (Note the forecast is consumed by an <i>optimization</i> — tie back to your OR guide's newsvendor/covering models.)</div>
+</div>
+</details>
+</section>
+<!-- ================================================================ -->
+<section class="topic" id="s11">
+<h2><span class="num">11</span>Neural networks &amp; backpropagation<input type="checkbox" class="done" data-k="ml-s11" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>The multilayer perceptron</summary>
+<div class="body">
+<div class="formulation">
+<div class="fl">Layer-by-layer computation</div>
+$$h^{(l)} = \phi\big(W^{(l)} h^{(l-1)} + b^{(l)}\big), \qquad h^{(0)} = x, \qquad \hat y = \text{output}(h^{(L)})$$
+</div>
+<ul>
+<li><b>Why nonlinear activations:</b> stacking linear layers is still linear — \(\phi\) is what buys expressiveness. Universal approximation: one wide hidden layer can approximate any continuous function (existence, not learnability — a good nuance).</li>
+<li><b>Activations:</b> ReLU \(\max(0,z)\) (default: cheap, no saturation for \(z>0\); "dying ReLU" if stuck negative — LeakyReLU/GELU fix); sigmoid/tanh saturate ⇒ vanishing gradients in deep stacks (keep sigmoid for output probabilities, not hidden layers).</li>
+<li><b>Output + loss pairs:</b> regression → linear + MSE/Huber; binary → sigmoid + log-loss; multiclass → softmax + cross-entropy; quantiles → multiple heads with pinball loss (ETA nets do this).</li>
+<li>A logistic regression is an MLP with zero hidden layers — the gradients you memorized in §4 are the last layer of every classifier net.</li>
+</ul>
+</div>
+</details>
+
+<details class="card" open>
+<summary>Backprop — derive it once, own it forever</summary>
+<div class="body">
+<p>Backprop = the chain rule, organized to reuse computation. Define \(\delta^{(l)} = \partial \mathcal{L} / \partial z^{(l)}\) (gradient w.r.t. pre-activations \(z^{(l)} = W^{(l)}h^{(l-1)} + b^{(l)}\)):</p>
+<div class="formulation">
+<div class="fl">Output layer (softmax or sigmoid + cross-entropy)</div>
+$$\delta^{(L)} = \hat y - y \quad \text{(the beautiful cancellation)}$$
+<div class="fl">Backward recursion</div>
+$$\delta^{(l)} = \big(W^{(l+1)\top}\, \delta^{(l+1)}\big) \odot \phi'\big(z^{(l)}\big)$$
+<div class="fl">Parameter gradients</div>
+$$\frac{\partial \mathcal{L}}{\partial W^{(l)}} = \delta^{(l)}\, h^{(l-1)\top} \qquad \frac{\partial \mathcal{L}}{\partial b^{(l)}} = \delta^{(l)}$$
+</div>
+<ul>
+<li>Forward pass caches every \(h^{(l)}, z^{(l)}\); backward pass runs the recursion once — total cost ≈ 2–3× a forward pass, <i>independent of parameter count per output</i>. That efficiency is why deep learning works at all.</li>
+<li><b>Vanishing/exploding gradients:</b> \(\delta^{(l)}\) is a product of \(W^\top\)s and \(\phi'\)s — repeated multiplication shrinks (sigmoid \(\phi' \le 0.25\)) or blows up. Fixes: ReLU, careful init (He/Xavier — variance-preserving), batch/layer norm, residual connections (gradient highways), gradient clipping.</li>
+<li>Modern framing: autodiff on a computation graph — you define the forward; PyTorch builds the backward. Backprop is just reverse-mode autodiff.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Architectures in one paragraph each (breadth check)</summary>
+<div class="body">
+<ul>
+<li><b>Embeddings:</b> learned dense vectors for categorical entities (stores, items, Dashers) — the bridge from tabular/sparse to neural; power similarity, cold-start-ish generalization, and two-tower retrieval (§13).</li>
+<li><b>CNNs:</b> convolution = local weight sharing; translation equivariance; for images and local-pattern sequences.</li>
+<li><b>RNN/LSTM:</b> sequential state; LSTM gates fight vanishing gradients; largely superseded by transformers but fine for modest sequence problems.</li>
+<li><b>Transformers:</b> self-attention \(\text{softmax}(QK^\top/\sqrt{d})V\) — every position attends to every other; parallelizable; scales; the backbone of LLMs and modern sequence/ETA models. Know the QKV sentence and that positional encodings inject order.</li>
+<li><b>Two-tower / DLRM-style models:</b> the workhorses of industrial search/recs — user tower and item tower produce embeddings; dot product for retrieval; deeper interaction models for ranking.</li>
+<li>When DL over GBM on tabular: very large data, heavy categorical embedding needs, sequence/text/image inputs, multi-task learning, or shared representation across many predictions (multi-task ETA models are DoorDash's public example).</li>
+</ul>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s12">
+<h2><span class="num">12</span>SGD, optimizers &amp; regularization<input type="checkbox" class="done" data-k="ml-s12" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Stochastic gradient descent — why noisy is good</summary>
+<div class="body">
+<div class="formulation">
+$$w_{t+1} = w_t - \eta\, \nabla_w \hat{\mathcal{L}}_{B_t}(w_t), \qquad \hat{\mathcal{L}}_{B_t} = \frac{1}{|B|}\sum_{i \in B_t} \ell_i \quad\text{(minibatch estimate)}$$
+</div>
+<ul>
+<li><b>Why stochastic:</b> full-batch gradients cost \(O(n)\) per step; minibatch gradients are unbiased estimates at \(O(|B|)\) — far more progress per FLOP. The noise also helps escape saddle points/sharp minima (implicit regularization toward flatter, better-generalizing solutions).</li>
+<li><b>Batch size:</b> small ⇒ noisy, regularizing, slow wall-clock; large ⇒ stable, hardware-efficient, may generalize slightly worse; learning rate typically scales with batch size.</li>
+<li><b>Learning rate is THE hyperparameter:</b> too high diverges, too low crawls. Schedules: warmup (stabilize early steps) then decay (cosine/step). Convergence for convex problems needs \(\sum \eta_t = \infty,\ \sum \eta_t^2 \lt \infty\) — nice theory nugget.</li>
+</ul>
+<h4>Momentum, RMSProp, Adam</h4>
+<div class="formulation">
+$$\text{Momentum: } v_{t} = \beta v_{t-1} + \nabla \mathcal L,\ \ w \mathrel{-}= \eta v_t \qquad \text{Adam: } w \mathrel{-}= \eta\, \frac{\hat m_t}{\sqrt{\hat v_t} + \epsilon}\ \ \text{(1st/2nd moment EMAs, bias-corrected)}$$
+</div>
+<ul>
+<li>Momentum accumulates a velocity — damps oscillation across ravines, accelerates along consistent directions.</li>
+<li>Adam = momentum + per-parameter adaptive step (divide by RMS of recent gradients) — robust default (\(\eta=10^{-3}\)); AdamW decouples weight decay from the gradient (the correct L2 for Adam).</li>
+<li>Sane default answer: "AdamW + warmup + cosine decay + gradient clipping; SGD+momentum can generalize marginally better for vision but needs more tuning."</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Regularization toolbox for nets</summary>
+<div class="body">
+<ul>
+<li><b>Weight decay (L2):</b> same MAP story as ridge (§1).</li>
+<li><b>Dropout:</b> randomly zero activations (p≈0.1–0.5) during training ⇒ prevents co-adaptation, approximates ensembling; scale at train time (inverted dropout), disable at inference.</li>
+<li><b>Early stopping:</b> validation-loss patience — cheap and effective; it's the NN analog of choosing boosting rounds.</li>
+<li><b>Batch norm / layer norm:</b> normalize activations ⇒ smoother optimization, higher usable learning rates, mild regularization (batch noise). LayerNorm for transformers/variable batches.</li>
+<li><b>Data augmentation &amp; multi-task learning:</b> more effective than any penalty when applicable; auxiliary tasks act as regularizers (multi-task ETA prediction shares representation across pickup/dropoff/total-time heads).</li>
+<li>Label smoothing, mixup — name-level awareness suffices.</li>
+</ul>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s13">
+<h2><span class="num">13</span>ML system design — DoorDash deep dives<input type="checkbox" class="done" data-k="ml-s13" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>The 8-step answer template (mirrors your OR playbook)</summary>
+<div class="body">
+<ol>
+<li><b>Clarify product goal &amp; constraints:</b> who consumes the prediction, latency budget, scale, cost of each error type.</li>
+<li><b>Define the ML problem:</b> unit of prediction, target/label (and its latency!), point estimate vs. distribution.</li>
+<li><b>Data &amp; labels:</b> sources, label quality/bias, feedback loops, cold start.</li>
+<li><b>Features:</b> by entity (store/Dasher/order/zone/time); real-time vs. batch; feature store for train/serve parity.</li>
+<li><b>Model:</b> baseline → GBM → (if justified) NN; calibration; multi-task where labels are related.</li>
+<li><b>Evals:</b> offline metrics + segments + baselines; shadow; switchback/A-B; guardrails. (Lead with this — it's their emphasis.)</li>
+<li><b>Serving:</b> online vs. precomputed, caching, fallbacks (rule-based backup when the model times out), p99 latency.</li>
+<li><b>Monitoring &amp; iteration:</b> drift (PSI), feature health, retrain cadence, incident playbook.</li>
+</ol>
+</div>
+</details>
+
+<details class="card" open>
+<summary>Deep dive 1 — ETA prediction (quoted at checkout &amp; post-order)</summary>
+<div class="body">
+<p><b>Problem shape.</b> Predict delivery time at two moments: <i>checkout quote</i> (affects conversion; no Dasher assigned yet — huge uncertainty) and <i>post-order tracking</i> (updates as events unfold). Total time = prep + wait + Dasher travel legs + handoffs; each component is separately predictable.</p>
+<ul>
+<li><b>Target subtlety:</b> quoted ETA is a <i>promise</i>, not a mean — lateness hurts asymmetrically ⇒ predict quantiles (e.g., τ=0.75–0.9) or mean + calibrated distribution, and let product choose the displayed quantile. This single point separates strong from average candidates.</li>
+<li><b>Features:</b> store (historical prep-time distribution by daypart, current backlog), order (basket size, item types), marketplace (Dasher availability, current load — real-time features), route (distances, historical travel speeds), temporal (hour, dow, weather).</li>
+<li><b>Model evolution story:</b> per-segment gradient boosting on engineered features → multi-task deep model (shared encoder, heads per component/quantile, embeddings for store/zone) — DoorDash publicly moved this way (multi-task, probabilistic ETAs); justify by shared signal + many correlated targets + distribution outputs.</li>
+<li><b>Labels arrive in ~an hour</b> ⇒ fast performance monitoring possible; but the <i>displayed</i> ETA changes user behavior (cancellation if late vs. quote) — feedback loop; measure with switchbacks, not just offline error.</li>
+<li><b>Evals ladder:</b> offline pinball/MAE by segment & horizon + calibration of the promise quantile → shadow (latency, drift) → switchback on on-time rate, conversion, cancellations; guardrail: Dasher wait at store.</li>
+<li><b>Sharp follow-up to expect:</b> "accuracy improved but cancellations rose" — the quote got <i>more honest</i> (longer) in slow conditions, hurting conversion; or on-time improved by inflating quotes (sandbagging) — hence pairing accuracy metrics with quote-length and conversion guardrails.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Deep dive 2 — Demand forecasting → Dasher mobilization</summary>
+<div class="body">
+<p><b>Problem shape.</b> Forecast orders per zone per 30-min bucket, 1–48h out; feed a staffing/incentive optimizer (newsvendor/covering — see the OR guide §11 Ex. 3). This is the cleanest "forecast + optimization" combo interview question, and it plays directly to your strengths.</p>
+<ul>
+<li><b>Model:</b> global XGBoost (or LightGBM) with lags/rolling/calendar/weather/promo features, direct multi-horizon, quantile heads (§10); hierarchical consistency (zone forecasts should sum ≈ metro forecast — reconcile top-down or via MinT if pushed).</li>
+<li><b>Cold start:</b> new zones/stores — pool via similar-entity features (cuisine, density) in the global model; shrink to priors.</li>
+<li><b>Evals:</b> wMAPE + pinball vs. seasonal-naive, sliced by zone size / daypart / horizon; but the <i>real</i> metric is decision quality: cost of under/over-staffing in the downstream optimizer — evaluate the forecast <i>through</i> the decision (backtest: what would staffing have cost with this forecast?). Saying "evaluate the forecast by its decision loss" is a standout moment.</li>
+<li><b>Monitoring:</b> event contamination (storms, outages) — flag and exclude from training or add indicators; drift after marketing campaigns.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Deep dive 3 — Store feed ranking / search</summary>
+<div class="body">
+<p><b>Problem shape.</b> Rank stores/items for a hungry user in &lt;100ms. Classic two-stage: <b>retrieval</b> (thousands → hundreds; two-tower embeddings + ANN index + business filters like "actually deliverable in 45 min") then <b>ranking</b> (GBM or deep model on rich cross-features, predicting P(conversion) — possibly multi-task: click, add-to-cart, order, reorder).</p>
+<ul>
+<li><b>Labels &amp; bias:</b> clicks/conversions are <b>position-biased</b> and shaped by past rankers ⇒ IPW or randomized "exploration" traffic for unbiased eval; delayed labels (reorder, churn) for long-term value.</li>
+<li><b>Objective subtlety:</b> pure P(order) over-shows popular chains ⇒ add diversity, new-store exploration (bandit-style), and marketplace health terms (merchant coverage). Multi-objective = weighted score or constrained re-rank — note the parallel to your OR multi-objective toolbox.</li>
+<li><b>Evals:</b> offline NDCG@k/recall@k on IPW-corrected data → A/B on conversion, GMV/session, retention; guardrails: new-merchant impressions, delivery-time distribution of orders placed (fast-ranking can push far stores ⇒ late deliveries!).</li>
+<li><b>Serving:</b> precompute store embeddings; cache candidates; feature freshness tiers (real-time availability vs. daily embeddings); fallback = popularity ranker.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Deep dive 4 — Fraud &amp; abuse detection</summary>
+<div class="body">
+<p><b>Problem shape.</b> Score orders/accounts/Dasher-reports for fraud (payment fraud, refund abuse, collusion) in real time; actions range from friction (verification) to block — action severity should scale with score <i>and</i> uncertainty.</p>
+<ul>
+<li><b>Rare labels, delayed &amp; biased:</b> chargebacks arrive weeks late; investigated cases are a biased sample (you only label what you flagged) ⇒ maintain a small <b>random-review holdout</b> for unbiased recall estimation — this one sentence is a differentiator.</li>
+<li><b>Adversarial drift:</b> fraudsters adapt ⇒ fast retraining, velocity/graph features (shared devices, addresses, payment instruments — entity-linkage graphs), and rules for known patterns alongside ML (rules give interpretability + instant response; ML generalizes — hybrid is the right answer, not either/or).</li>
+<li><b>Evals:</b> PR-AUC, recall @ actionable precision, cost-weighted expected loss; segment by fraud type; monitor precision of each action tier; guardrail: false-positive friction on good customers (support tickets, churn).</li>
+<li><b>Imbalance handling</b> per §7: class weights + calibrated scores + economic thresholds per action.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Rapid-fire: other prompts &amp; the one thing to say first</summary>
+<div class="body">
+<table>
+<tr><th>Prompt</th><th>Lead with…</th></tr>
+<tr><td>Predict food prep time</td><td>No direct label! Infer from Dasher wait events ⇒ noisy/censored labels; quantiles for batching buffers</td></tr>
+<tr><td>Dasher acceptance prediction</td><td>Feeds dispatch \(c_{ij}\); feedback loop (only made offers get labels) ⇒ log propensities, exploration</td></tr>
+<tr><td>Recommend "reorder" carousel</td><td>Sequence modeling of user history; evaluate on repeat-order rate, not clicks</td></tr>
+<tr><td>Cancellation prediction</td><td>Intervention product: what action does the score trigger? Cost-based threshold; causal framing for saves</td></tr>
+<tr><td>Dynamic delivery fee</td><td>Elasticity estimation (causal!) + optimization under supply constraints; guardrails on fairness/regulatory</td></tr>
+<tr><td>Support ticket triage (LLM era)</td><td>Cost/latency tiers: small classifier routes, LLM handles long tail; evals = human agreement + resolution rate</td></tr>
+</table>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s14">
+<h2><span class="num">14</span>Cheat sheet &amp; pitfalls<input type="checkbox" class="done" data-k="ml-s14" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Formula flash-card wall</summary>
+<div class="body">
+<table>
+<tr><th>Item</th><th>Formula / fact</th></tr>
+<tr><td>Bias–variance</td><td>\(\text{Err} = \text{Bias}^2 + \text{Var} + \sigma^2\)</td></tr>
+<tr><td>OLS</td><td>\(\hat\beta = (X^\top X)^{-1}X^\top y\); ridge adds \(+\lambda I\)</td></tr>
+<tr><td>Sigmoid / log-odds</td><td>\(p = 1/(1+e^{-w^\top x})\); \(\log\frac{p}{1-p} = w^\top x\)</td></tr>
+<tr><td>LR / softmax gradient</td><td>\(\nabla = \sum (p_i - y_i)x_i\)</td></tr>
+<tr><td>Bagging variance</td><td>\(\rho\sigma^2 + \frac{1-\rho}{B}\sigma^2\) — RF decorrelates via feature subsampling</td></tr>
+<tr><td>GBM step</td><td>Fit tree to \(-\partial \ell/\partial F\) (pseudo-residuals); \(F \mathrel{+}= \eta h\)</td></tr>
+<tr><td>XGBoost leaf weight</td><td>\(w^* = -\sum g / (\sum h + \lambda)\)</td></tr>
+<tr><td>ROC-AUC meaning</td><td>P(random + scores above random −); imbalance-blind</td></tr>
+<tr><td>PR-AUC baseline</td><td>= positive rate; use for rare events</td></tr>
+<tr><td>PSI</td><td>\(\sum (a_b - e_b)\ln(a_b/e_b)\); &gt;0.25 = major shift</td></tr>
+<tr><td>wMAPE</td><td>\(\sum|e| / \sum|y|\); pinball loss for quantiles</td></tr>
+<tr><td>Backprop recursion</td><td>\(\delta^{(l)} = W^{(l+1)\top}\delta^{(l+1)} \odot \phi'(z^{(l)})\); output \(\delta = \hat y - y\)</td></tr>
+<tr><td>Adam</td><td>momentum EMA / \(\sqrt{\text{grad}^2\text{ EMA}}\), bias-corrected; use AdamW</td></tr>
+<tr><td>Newsvendor fractile</td><td>\(F^{-1}(c_u/(c_u+c_o))\) — forecast quantile → staffing</td></tr>
+</table>
+</div>
+</details>
+
+<details class="card">
+<summary>Top 10 pitfalls in ML interviews</summary>
+<div class="body">
+<ol>
+<li>Random CV on temporal data (leaks future). Temporal/grouped splits always.</li>
+<li>Target encoding without out-of-fold computation — leakage.</li>
+<li>Optimizing ROC-AUC on a 0.5%-positive problem; ignoring calibration when scores feed decisions.</li>
+<li>No naive baseline — every metric needs a "compared to what".</li>
+<li>Treating regression coefficients / SHAP values as causal effects.</li>
+<li>Proposing deep learning before a GBM baseline on tabular data (or refusing DL where multi-task/embeddings/sequences justify it).</li>
+<li>Forgetting label latency and label bias (fraud, ranking) when designing evals.</li>
+<li>Ignoring train/serve skew — no feature-store / logged-features story.</li>
+<li>A/B testing marketplace changes with user-level randomization — interference; say "switchback".</li>
+<li>Forecasting trends with raw tree models — no extrapolation; detrend or hybridize.</li>
+</ol>
+</div>
+</details>
+
+<details class="card">
+<summary>Night-before checklist</summary>
+<div class="body">
+<ul>
+<li>Derive cold: bias–variance decomposition; logistic gradient; GBM pseudo-residual step; backprop recursion; RF variance formula.</li>
+<li>Explain in one sentence each: PR-vs-ROC choice; calibration and why it matters; PSI; switchback tests; quantile forecasting for staffing; recursive-vs-direct multi-horizon.</li>
+<li>Rehearse deep dives 1–2 (ETA, demand forecasting) end-to-end in the 8-step template — 10 minutes each, out loud.</li>
+<li>Have your XGBoost war stories quantified (what you tuned, what moved, business impact numbers).</li>
+<li>Remember the meta-message: <b>evals maturity + business coupling</b> is what distinguishes senior candidates — lead answers with the metric ladder and the decision the model serves.</li>
+</ul>
+</div>
+</details>
+</section>
+</main>
+</div>
+<script>
+function setAll(open){document.querySelectorAll('details.card').forEach(d=>d.open=open)}
+const nt=document.getElementById('navToggle'),sb=document.getElementById('sidebar');
+nt.addEventListener('click',()=>sb.classList.toggle('open'));
+sb.addEventListener('click',e=>{if(e.target.tagName==='A')sb.classList.remove('open')});
+const links=[...document.querySelectorAll('nav#sidebar a')];
+const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+function spy(){let i=secs.length-1;while(i>0&&secs[i].getBoundingClientRect().top>140)i--;links.forEach((a,j)=>a.classList.toggle('active',j===i))}
+document.addEventListener('scroll',spy,{passive:true});spy();
+const boxes=[...document.querySelectorAll('input.done')];
+function updProg(){const n=boxes.filter(b=>b.checked).length;document.getElementById('progLabel').textContent=n+' / '+boxes.length+' sections done'}
+boxes.forEach(b=>{try{b.checked=localStorage.getItem(b.dataset.k)==='1'}catch(e){}
+ b.addEventListener('change',()=>{try{localStorage.setItem(b.dataset.k,b.checked?'1':'0')}catch(e){};updProg()})});
+updProg();
+function applyTheme(t){document.body.classList.toggle('light',t==='light');document.getElementById('themeBtn').textContent=t==='light'?'🌙 Dark theme':'☀️ Light theme'}
+function toggleTheme(){const t=document.body.classList.contains('light')?'dark':'light';try{localStorage.setItem('prep-theme',t)}catch(e){};applyTheme(t)}
+let th='dark';try{th=localStorage.getItem('prep-theme')||'dark'}catch(e){};applyTheme(th);
+document.addEventListener('DOMContentLoaded',()=>{renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})});
+</script>
+</body>
+</html>

@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operations Research Interview Prep — DoorDash MLE Round 1</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --red:#FF6247; --red-dark:#FF8168; --red-bg:#3B1710;
+  --ink:#EAE6E1; --ink-soft:#AEA79F; --line:#3B3733;
+  --bg:#151312; --card:#1F1D1B; --accent-bg:#2B2825;
+  --blue:#7CB8E8; --blue-bg:#182B3D; --green:#69C489; --green-bg:#16301F;
+  --amber:#E3AC5C; --amber-bg:#332711;
+  --th-bg:#2E2B28; --th-fg:#F2EFEC; --row-alt:#262421; --form-bg:#1A1816;
+  --mono:'SF Mono',Consolas,'Liberation Mono',Menlo,monospace;
+}
+body.light{
+  --red:#EB1700; --red-dark:#B51200; --red-bg:#FFF0EE;
+  --ink:#191919; --ink-soft:#4a4a4a; --line:#e4e0dc;
+  --bg:#faf9f7; --card:#ffffff; --accent-bg:#f4f1ee;
+  --blue:#0e5fa8; --blue-bg:#eef5fc; --green:#1d7a3e; --green-bg:#eefaf0;
+  --amber:#a05a00; --amber-bg:#fdf6e7;
+  --th-bg:#191919; --th-fg:#ffffff; --row-alt:#f7f5f2; --form-bg:#fbfaf8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:20px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.65;font-size:16.5px}
+.layout{display:flex;max-width:1340px;margin:0 auto}
+/* ---------- Sidebar ---------- */
+nav#sidebar{position:sticky;top:0;height:100vh;width:288px;flex-shrink:0;overflow-y:auto;padding:26px 14px 40px 20px;border-right:1px solid var(--line);background:var(--card)}
+nav#sidebar .brand{font-weight:800;font-size:15px;color:var(--red);letter-spacing:.4px;text-transform:uppercase;margin-bottom:2px}
+nav#sidebar .brand-sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:18px}
+nav#sidebar a{display:block;padding:5px 10px;margin:1px 0;border-radius:7px;color:var(--ink-soft);text-decoration:none;font-size:13.5px;line-height:1.35}
+nav#sidebar a:hover{background:var(--accent-bg);color:var(--ink)}
+nav#sidebar a.active{background:var(--red-bg);color:var(--red-dark);font-weight:600}
+nav#sidebar .nav-group{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#9a938c;margin:16px 0 4px 10px}
+#navToggle{display:none;position:fixed;bottom:18px;right:18px;z-index:60;background:var(--red);color:#fff;border:none;border-radius:50%;width:52px;height:52px;font-size:22px;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer}
+/* ---------- Main ---------- */
+main{flex:1;min-width:0;padding:34px 44px 120px}
+header.hero{background:linear-gradient(135deg,#1a1a1a 0%,#3d0b04 60%,var(--red-dark) 100%);color:#fff;border-radius:16px;padding:38px 40px;margin-bottom:30px}
+header.hero h1{font-size:30px;line-height:1.2;margin-bottom:10px}
+header.hero p{color:#f3d9d4;font-size:15.5px;max-width:820px}
+header.hero .chips{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+header.hero .chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 13px;font-size:12.5px}
+.toolbar{display:flex;gap:10px;align-items:center;margin:0 0 22px;flex-wrap:wrap}
+.toolbar button{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;color:var(--ink-soft);font-weight:600}
+.toolbar button:hover{border-color:var(--red);color:var(--red)}
+.toolbar .prog{font-size:13px;color:var(--ink-soft);margin-left:auto}
+/* ---------- Sections & cards ---------- */
+section.topic{margin-bottom:26px;scroll-margin-top:16px}
+section.topic > h2{display:flex;align-items:center;gap:12px;font-size:23px;padding:10px 2px;border-bottom:3px solid var(--red);margin-bottom:16px}
+section.topic > h2 .num{background:var(--red);color:#fff;font-size:14px;border-radius:8px;min-width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+section.topic > h2 input[type=checkbox]{margin-left:auto;width:19px;height:19px;accent-color:var(--red);cursor:pointer}
+details.card{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+details.card summary{cursor:pointer;padding:14px 18px;font-weight:700;font-size:16.5px;list-style:none;display:flex;align-items:center;gap:10px;user-select:none}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary::before{content:'▸';color:var(--red);font-size:15px;transition:transform .15s;flex-shrink:0}
+details.card[open] summary::before{transform:rotate(90deg)}
+details.card summary:hover{background:var(--accent-bg)}
+details.card .body{padding:2px 22px 20px;border-top:1px solid var(--line)}
+details.card h4{margin:18px 0 6px;font-size:15.5px}
+details.card p{margin:9px 0}
+details.card ul,details.card ol{margin:8px 0 8px 24px}
+details.card li{margin:5px 0}
+/* ---------- Callouts ---------- */
+.callout{border-radius:10px;padding:13px 17px;margin:14px 0;font-size:15px;border-left:4px solid}
+.callout .t{font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:4px}
+.tip{background:var(--green-bg);border-color:var(--green)} .tip .t{color:var(--green)}
+.warn{background:var(--amber-bg);border-color:var(--amber)} .warn .t{color:var(--amber)}
+.dd{background:var(--red-bg);border-color:var(--red)} .dd .t{color:var(--red)}
+.info{background:var(--blue-bg);border-color:var(--blue)} .info .t{color:var(--blue)}
+/* ---------- Math / formulation blocks ---------- */
+.formulation{background:var(--form-bg);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:14px 0;overflow-x:auto}
+.formulation .fl{font-weight:700;font-size:13px;color:var(--red-dark);text-transform:uppercase;letter-spacing:.6px;margin:10px 0 2px}
+.formulation .fl:first-child{margin-top:0}
+.katex{font-size:1.04em}
+.katex-display{margin:10px 0;overflow-x:auto;overflow-y:hidden;padding:4px 0}
+/* ---------- Tables ---------- */
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14.5px;background:var(--card)}
+th{background:var(--th-bg);color:var(--th-fg);text-align:left;padding:9px 12px;font-size:13px;letter-spacing:.3px}
+td{border:1px solid var(--line);padding:8px 12px;vertical-align:top}
+tr:nth-child(even) td{background:var(--row-alt)}
+code{font-family:var(--mono);font-size:.86em;background:var(--accent-bg);padding:2px 6px;border-radius:5px}
+pre{background:#211f1e;color:#eee8e2;border-radius:10px;padding:16px 18px;overflow-x:auto;font-size:13.5px;line-height:1.55;margin:14px 0}
+pre code{background:none;color:inherit;padding:0;font-size:inherit}
+.pill{display:inline-block;background:var(--accent-bg);border:1px solid var(--line);border-radius:999px;padding:1px 11px;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin:2px 3px 2px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:1020px){
+  nav#sidebar{position:fixed;left:0;top:0;z-index:50;transform:translateX(-100%);transition:transform .2s;box-shadow:4px 0 20px rgba(0,0,0,.12)}
+  nav#sidebar.open{transform:none}
+  #navToggle{display:block}
+  main{padding:20px 18px 90px}
+  .grid2{grid-template-columns:1fr}
+  header.hero{padding:26px 22px}
+}
+</style>
+</head>
+<body>
+<button id="navToggle" aria-label="Menu">☰</button>
+<div class="layout">
+<nav id="sidebar">
+  <div class="brand">OR Interview Prep</div>
+  <div class="brand-sub">DoorDash MLE · Round 1 · 60 min OR module</div>
+  <div class="nav-group">Foundations</div>
+  <a href="#s1">1 · The interview &amp; strategy</a>
+  <a href="#s2">2 · Linear programming basics</a>
+  <a href="#s3">3 · Geometry &amp; how solvers work</a>
+  <a href="#s4">4 · Duality &amp; shadow prices</a>
+  <div class="nav-group">Modeling Toolkit</div>
+  <a href="#s5">5 · Constraint modeling patterns</a>
+  <a href="#s6">6 · Penalties &amp; soft constraints</a>
+  <a href="#s7">7 · MIP &amp; LP relaxation</a>
+  <div class="nav-group">Problems</div>
+  <a href="#s8">8 · Canonical OR problems</a>
+  <a href="#s9">9 · DoorDash problem landscape</a>
+  <div class="nav-group">Interview Execution</div>
+  <a href="#s10">10 · Formulation playbook</a>
+  <a href="#s11">11 · Six worked DoorDash examples</a>
+  <a href="#s12">12 · Exact vs. heuristic tradeoffs</a>
+  <a href="#s13">13 · Cheat sheet &amp; pitfalls</a>
+</nav>
+<main>
+<header class="hero">
+  <h1>Operations Research — Interview Study Guide</h1>
+  <p>A self-contained refresher and interview playbook for the DoorDash MLE Round&nbsp;1 <b>OR Domain Knowledge</b> module (60 minutes). Built for someone with project-level OR experience who wants systematic depth: LP → duality → modeling patterns → MIP → canonical problems → live formulation technique.</p>
+  <div class="chips">
+    <span class="chip">Hands-on MIP formulation expected</span>
+    <span class="chip">Objective · Variables · Constraints</span>
+    <span class="chip">Exact vs. heuristic tradeoffs</span>
+    <span class="chip">Business impact framing</span>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button id="themeBtn" onclick="toggleTheme()">☀️ Light theme</button>
+  <button onclick="setAll(true)">Expand all</button>
+  <button onclick="setAll(false)">Collapse all</button>
+  <span class="prog" id="progLabel"></span>
+</div>
+
+<!-- ================================================================ -->
+<section class="topic" id="s1">
+<h2><span class="num">1</span>The interview &amp; how to use this guide<input type="checkbox" class="done" data-k="or-s1" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>What the 60-minute OR module actually tests</summary>
+<div class="body">
+<p>Per the prep kit, the interviewer evaluates two things: <b>technical depth</b> (can you build a correct, well-structured optimization model live?) and <b>business judgment</b> (do you connect the model to dollars, reliability, and customer experience?). Expect roughly this arc:</p>
+<ul>
+<li><b>Past OR projects (~15–20 min).</b> Walk through 2–3 projects: your role, the formulation, the algorithm, and measurable results. Use STAR. Be ready to write the actual objective and constraints of your past models, not just describe them.</li>
+<li><b>Novel problem formulation (~30–40 min).</b> A DoorDash-flavored business problem ("How would you decide which orders to batch together?"). You are expected to ask clarifying questions, state assumptions, then formulate — decision variables, objective, constraints — likely as a <b>MIP</b>, on a shared doc or whiteboard.</li>
+<li><b>Follow-ups.</b> "What if the problem has 100k variables and must solve in 1 second?" — tests LP relaxation, heuristics, decomposition, and pragmatism.</li>
+</ul>
+<div class="callout tip"><span class="t">Interview tip</span>The single highest-leverage habit: <b>narrate your structure before the math</b>. Say "I'll define the decision, then the objective, then constraints in three groups: capacity, logic, and quality-of-service." Interviewers grade the process as much as the answer.</div>
+</div>
+</details>
+
+<details class="card">
+<summary>How to study with this page</summary>
+<div class="body">
+<p>Sections 2–7 rebuild foundations from first principles — skim what you know, slow down on duality (§4) and modeling patterns (§5–6), which are the most common depth probes. Sections 8–9 are pattern libraries: the goal is to <i>recognize</i> which canonical problem hides inside a business question. Sections 10–11 are the core interview asset — a repeatable formulation procedure plus six fully worked DoorDash-style examples. Section 12–13 arm you for the "make it practical" follow-ups.</p>
+<ul>
+<li>Each section header has a checkbox — progress is saved in your browser.</li>
+<li>Practice by <b>writing formulations by hand</b> from the worked examples' problem statements before opening the solutions.</li>
+<li>Time-box: you should be able to produce a clean first formulation of any §11 example in ~10 minutes.</li>
+</ul>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s2">
+<h2><span class="num">2</span>Linear programming from the ground up<input type="checkbox" class="done" data-k="or-s2" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Anatomy of an optimization problem</summary>
+<div class="body">
+<p>Every mathematical program has three ingredients. Getting into the habit of naming them in this order is exactly what the interview expects:</p>
+<ol>
+<li><b>Decision variables</b> — the levers you control. E.g., \(x_{ij}=1\) if Dasher \(i\) is assigned order \(j\).</li>
+<li><b>Objective function</b> — one scalar measure of "good", minimized or maximized. E.g., total delivery time.</li>
+<li><b>Constraints</b> — the rules of the world: capacities, logic, budgets, service guarantees.</li>
+</ol>
+<p>A <b>linear program (LP)</b> requires the objective and all constraints to be <i>linear</i> (weighted sums) in <i>continuous</i> variables:</p>
+<div class="formulation">
+$$\begin{aligned} \min_{x} \quad & c^\top x \\ \text{s.t.} \quad & A x \ge b \\ & x \ge 0 \end{aligned}$$
+</div>
+<p>Here \(x \in \mathbb{R}^n\) are decisions, \(c\) the cost vector, each row of \(Ax \ge b\) one constraint. Any mix of \(\le,\ \ge,\ =\) constraints and max/min objectives can be converted into this <b>standard form</b>: flip a maximization by negating \(c\); flip inequality direction by multiplying by \(-1\); replace a free variable by the difference of two nonnegative ones (\(x = x^+ - x^-\)); turn inequalities into equalities with <b>slack variables</b> (\(a^\top x \le b \Rightarrow a^\top x + s = b,\ s\ge 0\)).</p>
+<div class="callout info"><span class="t">Why linearity matters</span>Linear objective + linear constraints ⇒ the feasible set is a <b>convex polyhedron</b> and every local optimum is global. That's why LPs with millions of variables solve in seconds while a single nonconvex constraint can make a tiny problem intractable. In interviews, actively look for ways to <i>keep or make</i> the model linear (see §5 for linearization tricks).</div>
+</div>
+</details>
+
+<details class="card">
+<summary>A first example, worked completely: the delivery-capacity LP</summary>
+<div class="body">
+<p><b>Business question.</b> A delivery zone has two service types: standard orders yielding \$4 contribution margin each and priority ("express") orders yielding \$7. Each standard order consumes ~30 Dasher-minutes; express consumes ~45 (tighter routing). The zone has 6{,}000 Dasher-minutes available this evening, and merchant kitchen throughput caps express at 80 orders. Marketing committed at least 40 standard orders to a partner. How many of each should we accept to maximize margin?</p>
+<div class="formulation">
+<div class="fl">Decision variables</div>
+<p>\(x_s, x_e \ge 0\): number of standard / express orders accepted (treat as continuous for now).</p>
+<div class="fl">Objective</div>
+$$\max \; 4x_s + 7x_e$$
+<div class="fl">Constraints</div>
+$$\begin{aligned} 30x_s + 45x_e &\le 6000 && \text{(Dasher-minutes)}\\ x_e &\le 80 && \text{(kitchen throughput)}\\ x_s &\ge 40 && \text{(partner commitment)}\\ x_s, x_e &\ge 0 \end{aligned}$$
+</div>
+<p><b>Solving by geometry.</b> With two variables, plot the feasible region; the optimum sits at a <b>vertex</b>. Candidate vertices: intersect Dasher-minutes with the kitchen cap: \(x_e=80,\ 30x_s=6000-3600=2400 \Rightarrow x_s=80\). Check the corner \((x_s, x_e) = (80, 80)\): objective \(=4(80)+7(80)=880\). Compare with putting everything into standard: \(x_s = 200, x_e = 0\): objective \(=800\). And the minimum-commitment corner \(x_s=40\): \(45x_e \le 4800 \Rightarrow x_e = 80\) (kitchen binds first), objective \(=160+560=720\). Optimum: \(\boxed{x_s=80,\ x_e=80}\), margin \$880. Both the Dasher-minutes and kitchen constraints are <b>binding</b> (hold with equality); the partner commitment is <b>slack</b>.</p>
+<div class="callout tip"><span class="t">Interview tip</span>Knowing which constraints bind is the doorway to duality (§4): binding constraints have positive shadow prices — "an extra Dasher-minute is worth about 8.9 cents to us tonight; extra kitchen capacity is worth \$3 per express slot." Saying this sentence in an interview signals real OR fluency.</div>
+</div>
+</details>
+
+<details class="card">
+<summary>Vocabulary you must be fluent in</summary>
+<div class="body">
+<table>
+<tr><th>Term</th><th>Meaning</th><th>One-liner you can say</th></tr>
+<tr><td><b>Feasible region</b></td><td>Set of all \(x\) satisfying every constraint</td><td>"A convex polyhedron for LPs."</td></tr>
+<tr><td><b>Binding / active constraint</b></td><td>Holds with equality at the optimum</td><td>"The bottleneck; it has a nonzero shadow price."</td></tr>
+<tr><td><b>Slack</b></td><td>Unused amount of an inequality</td><td>"Slack ⇒ shadow price zero (complementary slackness)."</td></tr>
+<tr><td><b>Infeasible</b></td><td>No point satisfies all constraints</td><td>"I'd soften constraints with penalized slacks to diagnose (§6)."</td></tr>
+<tr><td><b>Unbounded</b></td><td>Objective can improve forever</td><td>"Usually a modeling bug — a missing capacity or sign."</td></tr>
+<tr><td><b>Degenerate</b></td><td>A vertex where more constraints are active than needed</td><td>"Can slow simplex; usually harmless in practice."</td></tr>
+<tr><td><b>Convexity</b></td><td>Line segment between feasible points stays feasible</td><td>"Guarantees local = global optimum."</td></tr>
+</table>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s3">
+<h2><span class="num">3</span>Geometry &amp; how solvers actually work<input type="checkbox" class="done" data-k="or-s3" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>The fundamental theorem: optima live at vertices</summary>
+<div class="body">
+<p>The feasible region of an LP is a convex polyhedron. Since the objective \(c^\top x\) is linear, its level sets are parallel hyperplanes — sliding a hyperplane as far as possible in the improving direction, the last contact with the polyhedron is at a <b>vertex</b> (or a whole face, when multiple optima exist). Consequences:</p>
+<ul>
+<li>If an LP has a finite optimum, at least one optimal solution is a vertex (a <b>basic feasible solution</b> — at most \(m\) nonzero variables where \(m\) is the number of constraints).</li>
+<li>Searching only vertices is enough — this is the basis of the simplex method.</li>
+<li>Vertices of many network-structured LPs are naturally integral (§7) — the deep reason assignment and flow problems are "easy".</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Simplex vs. interior-point vs. first-order methods</summary>
+<div class="body">
+<h4>Simplex</h4>
+<p>Walks vertex-to-vertex along edges, each step swapping one variable into the "basis" while improving the objective. Exponential worst case, but superb in practice; its killer feature is <b>warm starting</b> — after a small data change, re-solving from the previous basis is nearly free. That's why simplex dominates in re-solve-every-minute production loops (like dispatch).</p>
+<h4>Interior-point (barrier)</h4>
+<p>Moves through the interior of the polyhedron following a "central path", using Newton steps on a barrier-augmented problem. Polynomial time, excels on very large sparse LPs, but doesn't warm-start well. Commercial solvers (Gurobi, CPLEX) run barrier and simplex concurrently and return whichever finishes first.</p>
+<h4>First-order / specialized methods</h4>
+<p>For enormous or structured problems: network simplex for flow problems, the <b>Hungarian algorithm</b> (\(O(n^3)\)) for pure assignment, auction algorithms, and modern first-order LP solvers (e.g., PDLP) for problems too big to factorize.</p>
+<div class="callout dd"><span class="t">DoorDash connection</span>DoorDash's dispatch engine (DeepRed) publicly noted that formulating Dasher–order matching as a MIP solved with a commercial solver was up to <b>10× faster than the Hungarian algorithm</b> at their scale, and far more flexible — batching, delay decisions and side constraints are trivial to add to a MIP but break specialized algorithms. Great example to cite when discussing exact-method tradeoffs.</div>
+</div>
+</details>
+
+<details class="card">
+<summary>Complexity cheat table — what's easy, what's hard</summary>
+<div class="body">
+<table>
+<tr><th>Problem class</th><th>Complexity</th><th>Why</th></tr>
+<tr><td>LP (continuous)</td><td>Polynomial</td><td>Convex; interior-point is poly-time</td></tr>
+<tr><td>Assignment / bipartite matching</td><td>Polynomial \(O(n^3)\)</td><td>Totally unimodular LP; Hungarian / flow algorithms</td></tr>
+<tr><td>Min-cost flow, max-flow, shortest path</td><td>Polynomial</td><td>Network structure; integral vertices</td></tr>
+<tr><td>MIP (general)</td><td>NP-hard</td><td>Integrality destroys convexity</td></tr>
+<tr><td>Knapsack</td><td>NP-hard (pseudo-poly DP)</td><td>DP over capacity works when capacity is small</td></tr>
+<tr><td>Set cover / facility location</td><td>NP-hard</td><td>Greedy gives \(\ln n\)-approximation for set cover</td></tr>
+<tr><td>TSP / VRP</td><td>NP-hard</td><td>Exponential tours; solved in practice by B&amp;B + cuts or heuristics</td></tr>
+</table>
+<div class="callout tip"><span class="t">Interview tip</span>When you name a problem NP-hard, immediately follow with the pragmatic move: "…but at our instance sizes (~hundreds of orders per region per minute), a MIP with a 1-second time limit and a 1–2% gap tolerance is routinely fine; if not, I'd fall back to a rolling-horizon heuristic."</div>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s4">
+<h2><span class="num">4</span>Duality, shadow prices &amp; sensitivity<input type="checkbox" class="done" data-k="or-s4" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>The dual: the same problem seen as pricing</summary>
+<div class="body">
+<p>Every LP (the <b>primal</b>) has a companion LP (the <b>dual</b>) built from the same data. For the primal in standard form:</p>
+<div class="formulation">
+<div class="grid2">
+<div>
+<div class="fl">Primal</div>
+$$\begin{aligned}\min_x\ & c^\top x\\ \text{s.t. } & Ax \ge b\\ & x\ge 0\end{aligned}$$
+</div>
+<div>
+<div class="fl">Dual</div>
+$$\begin{aligned}\max_y\ & b^\top y\\ \text{s.t. } & A^\top y \le c\\ & y\ge 0\end{aligned}$$
+</div>
+</div>
+</div>
+<p>Mechanics to remember: <b>one dual variable per primal constraint, one dual constraint per primal variable</b>; the primal's right-hand side \(b\) becomes the dual's objective; the primal's costs \(c\) become the dual's right-hand side. Sense rules (for a min primal): a \(\ge\) constraint ⇒ dual variable \(\ge 0\); an \(=\) constraint ⇒ dual variable free; a \(\le\) constraint ⇒ dual variable \(\le 0\).</p>
+<h4>The economic story (this is what interviews probe)</h4>
+<p>The dual variable \(y_i\) is the <b>shadow price</b> of constraint \(i\): the rate at which the optimal objective improves per unit increase of \(b_i\), valid within a sensitivity range. In the §2 example, the dual value on Dasher-minutes answers: "what is one more Dasher-minute of supply worth tonight?" That is exactly the quantity you'd use to decide incentive spend.</p>
+<ul>
+<li><b>Weak duality:</b> any dual-feasible \(y\) gives a bound: \(b^\top y \le c^\top x\) for any primal-feasible \(x\). Duals certify solution quality.</li>
+<li><b>Strong duality:</b> if either problem has a finite optimum, both do, and optimal values are <b>equal</b>. (For LPs — not generally for MIPs, which is where the "duality gap" language comes from.)</li>
+<li><b>Complementary slackness:</b> at optimality, \(y_i \cdot (\text{slack}_i) = 0\) and \(x_j \cdot (\text{reduced cost}_j) = 0\). In words: a constraint with slack has price zero; a resource has positive price only if fully used.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Worked dual: pricing Dasher capacity</summary>
+<div class="body">
+<p>Take the §2 LP (drop the \(x_s \ge 40\) constraint, which was slack anyway, to keep it clean):</p>
+<div class="formulation">
+$$\begin{aligned}\max\ & 4x_s + 7x_e \quad \text{s.t.}\quad 30x_s + 45x_e \le 6000,\quad x_e \le 80,\quad x \ge 0\end{aligned}$$
+</div>
+<p>The dual has one variable per constraint: \(u\) (per Dasher-minute) and \(v\) (per express slot):</p>
+<div class="formulation">
+$$\begin{aligned}\min\ & 6000u + 80v \\ \text{s.t. } & 30u \ge 4 && \text{(covering the value of a standard order)}\\ & 45u + v \ge 7 && \text{(covering the value of an express order)}\\ & u, v \ge 0\end{aligned}$$
+</div>
+<p>Interpretation: find internal prices for Dasher-minutes and kitchen slots such that every order's resource bundle is priced at <i>at least</i> its margin, minimizing the total imputed value of resources. Solving: both primal constraints bind, so both dual constraints for the <i>used</i> variables bind: \(30u = 4 \Rightarrow u = 0.1\overline{3}\); \(45u + v = 7 \Rightarrow v = 1\). Dual objective \(= 6000(0.1\overline{3}) + 80(1) = 800 + 80 = 880\) — exactly the primal optimum (strong duality). So: a marginal Dasher-minute is worth ≈\$0.133 (≈\$8/hour of extra supply) and a marginal express kitchen slot is worth \$1.</p>
+<div class="callout tip"><span class="t">Interview tip</span>Concrete uses of duals you can cite: (1) <b>incentive pricing</b> — shadow price of the supply constraint tells you the break-even Dasher bonus; (2) <b>bottleneck triage</b> — rank constraints by shadow price to know which capacity to expand; (3) <b>column generation</b> — duals price out new candidate routes/batches (§12); (4) <b>reduced costs</b> — tell you how much a currently-unused option's cost must drop before it enters the solution.</div>
+</div>
+</details>
+
+<details class="card">
+<summary>Reduced costs, sensitivity ranges &amp; Lagrangian view</summary>
+<div class="body">
+<h4>Reduced cost</h4>
+<p>For a nonbasic (zero) variable \(x_j\), the reduced cost \(\bar c_j = c_j - A_j^\top y\) is how much its objective coefficient must improve before it becomes worth using. "Why doesn't the model ever assign this Dasher across town? Its reduced cost is +\$3 — the assignment would need to be \$3 cheaper to enter."</p>
+<h4>Sensitivity / ranging</h4>
+<p>Shadow prices are valid only while the optimal basis stays optimal — solvers report ranges for each RHS \(b_i\) and cost \(c_j\). Say this in interviews: "the dual price holds locally; for a large capacity change I'd re-solve rather than extrapolate."</p>
+<h4>Lagrangian connection</h4>
+<p>Duality = relaxing constraints into the objective with multiplier prices: \(L(x,y) = c^\top x + y^\top(b - Ax)\), and the dual function \(g(y)=\min_{x\ge0} L(x,y)\) lower-bounds the primal. This view generalizes beyond LP (Lagrangian relaxation for MIPs, §12) and is the cleanest way to explain <i>why</i> duals are prices: \(y_i\) is the penalty rate at which constraint \(i\) is "bought out".</p>
+<div class="callout warn"><span class="t">Common trap</span>For <b>MIPs</b>, strong duality fails: LP-relaxation duals are commonly used as approximate prices, but there is generally an integrality gap. If asked "what's the shadow price in your MIP?", the sharp answer: "MIPs don't have exact shadow prices; I'd quote the LP-relaxation dual as an approximation, or re-solve with \(b_i \pm 1\) and difference the objectives."</div>
+</div>
+</details>
+</section>
+<!-- ================================================================ -->
+<section class="topic" id="s5">
+<h2><span class="num">5</span>Constraint modeling patterns (the linearization toolbox)<input type="checkbox" class="done" data-k="or-s5" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Binary variables &amp; the big-M pattern</summary>
+<div class="body">
+<p>Binary variables \(z \in \{0,1\}\) turn LPs into MIPs but unlock <b>logic</b>. The workhorse is <b>big-M</b>: linking a continuous quantity to an on/off decision.</p>
+<div class="formulation">
+<div class="fl">"x can be positive only if z = 1" (fixed-charge / setup pattern)</div>
+$$x \le M z, \qquad x \ge 0,\; z\in\{0,1\}$$
+<div class="fl">"If z = 1, constraint must hold" (indicator)</div>
+$$a^\top x \le b + M(1-z) \quad\Longleftrightarrow\quad z=1 \Rightarrow a^\top x \le b$$
+</div>
+<p>Example — <b>fixed cost</b>: opening a dark-store costs \$50k plus \$2 per order served. Let \(z=1\) if opened, \(x\) = orders served, capacity 10k: cost \(= 50000z + 2x\) with \(x \le 10000\,z\). If \(z=0\), \(x\) is forced to 0.</p>
+<div class="callout warn"><span class="t">Common trap — and a favorite interview probe</span>Choose \(M\) as <b>small as validly possible</b> (here \(M=10000\), the true capacity — never \(10^9\)). Loose big-Ms make the LP relaxation weak: the relaxation can set \(z = x/M \approx 0.001\) and "pay" almost no fixed cost, so branch-and-bound gets poor bounds and slows dramatically. Mentioning tight big-Ms (or indicator constraints, which solvers like Gurobi support natively) is a strong signal.</div>
+</div>
+</details>
+
+<details class="card">
+<summary>Logical conditions as linear constraints</summary>
+<div class="body">
+<table>
+<tr><th>English</th><th>Constraint (all \(z\in\{0,1\}\))</th></tr>
+<tr><td>At most one of A, B</td><td>\(z_A + z_B \le 1\)</td></tr>
+<tr><td>Exactly one of A, B, C</td><td>\(z_A + z_B + z_C = 1\)</td></tr>
+<tr><td>If A then B (A ⇒ B)</td><td>\(z_A \le z_B\)</td></tr>
+<tr><td>B iff (A1 and A2)</td><td>\(z_B \le z_{A1},\; z_B \le z_{A2},\; z_B \ge z_{A1}+z_{A2}-1\)</td></tr>
+<tr><td>B iff (A1 or A2)</td><td>\(z_B \ge z_{A1},\; z_B \ge z_{A2},\; z_B \le z_{A1}+z_{A2}\)</td></tr>
+<tr><td>Either constraint 1 or constraint 2 (disjunction)</td><td>\(a_1^\top x \le b_1 + M z,\quad a_2^\top x \le b_2 + M(1-z)\)</td></tr>
+<tr><td>Count: at least \(k\) of \(n\) conditions</td><td>\(\sum_i z_i \ge k\)</td></tr>
+</table>
+<p>Example — <b>either/or in scheduling</b>: two deliveries assigned to the same Dasher must not overlap: either \(j\) finishes before \(k\) starts or vice versa. With start times \(t_j, t_k\), service times \(s_j, s_k\), and a sequencing binary \(z\): \(t_j + s_j \le t_k + M(1-z)\) and \(t_k + s_k \le t_j + Mz\). This disjunctive pattern is the backbone of scheduling MIPs.</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Linearizing min / max / absolute value / products</summary>
+<div class="body">
+<h4>Max and min in the objective</h4>
+<div class="formulation">
+<div class="fl">Minimize a maximum (makespan / fairness): introduce \(T\)</div>
+$$\min\; T \quad \text{s.t.}\quad \sum_j w_j x_{ij} \le T \;\;\forall i$$
+</div>
+<p>This is exactly how you balance workloads across Dashers ("minimize the longest route"). Symmetrically, maximize a minimum for fairness floors. <b>Caution:</b> minimizing a max is easy (convex); <i>maximizing</i> a max or putting a max on the wrong side of a \(\le\) needs binaries.</p>
+<h4>Absolute value</h4>
+<div class="formulation">
+$$\min |u| \;\Rightarrow\; \min\, (u^+ + u^-),\quad u = u^+ - u^-,\; u^\pm \ge 0$$
+</div>
+<p>Used constantly for deviation penalties: "as close to target as possible" \(\min |x - \tau|\). Valid when the objective <i>pushes both parts down</i> (minimization); in other positions it needs binaries.</p>
+<h4>Products</h4>
+<ul>
+<li>\(z_1 z_2\) (binary × binary): \(w \le z_1,\ w \le z_2,\ w \ge z_1 + z_2 - 1\).</li>
+<li>\(z \cdot x\) (binary × continuous, \(0\le x\le U\)): \(w \le Uz,\ w \le x,\ w \ge x - U(1-z),\ w \ge 0\) (McCormick).</li>
+<li>\(x_1 x_2\) (continuous × continuous): genuinely nonconvex — avoid; discretize one variable or reformulate.</li>
+</ul>
+<h4>Piecewise-linear functions</h4>
+<p>Tiered incentives, volume discounts, soft-then-hard lateness costs: model with <b>convex combination (λ) formulation</b> over breakpoints \((a_k, f(a_k))\): \(x = \sum_k \lambda_k a_k\), \(y = \sum_k \lambda_k f(a_k)\), \(\sum_k \lambda_k = 1\), \(\lambda \ge 0\) plus SOS2 (or adjacency binaries) so at most two consecutive \(\lambda_k\) are positive. Shortcut worth saying: if the piecewise function is <b>convex and being minimized</b>, no binaries are needed — just add one linear constraint per piece: \(y \ge m_k x + c_k\ \forall k\).</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Sets, indices &amp; the discipline of notation</summary>
+<div class="body">
+<p>Clean formulations start with clean notation. Adopt this template and use it verbatim in the interview:</p>
+<div class="formulation">
+<div class="fl">Sets</div>
+<p>\(I\) = Dashers, \(J\) = orders, \(T\) = time periods, \(K\) = zones…</p>
+<div class="fl">Parameters (data — known, lowercase)</div>
+<p>\(c_{ij}\) = cost of assigning \(i\) to \(j\); \(d_{jt}\) = demand; \(q_i\) = capacity…</p>
+<div class="fl">Decision variables (unknown — declare domain!)</div>
+<p>\(x_{ij} \in \{0,1\}\); \(y_t \ge 0\); \(T \in \mathbb{R}\)…</p>
+</div>
+<ul>
+<li>Always declare variable <b>domains</b> (binary / integer / continuous, bounds). Forgetting \(x \ge 0\) is the classic whiteboard bug.</li>
+<li>Quantify every constraint: \(\forall i \in I\), \(\forall t \in T\). An unquantified constraint is ambiguous.</li>
+<li>Sanity-check <b>units</b> in each constraint (minutes vs. orders vs. dollars) — catches most formulation errors.</li>
+<li>State model size: "\(|I|\times|J|\) binaries ≈ 200 × 500 = 100k — fine for a modern solver with a time limit."</li>
+</ul>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s6">
+<h2><span class="num">6</span>Penalties, soft constraints &amp; infeasibility<input type="checkbox" class="done" data-k="or-s6" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Hard vs. soft constraints — the elastic pattern</summary>
+<div class="body">
+<p>A <b>hard</b> constraint can never be violated (physics, law, safety). A <b>soft</b> constraint expresses a strong preference (SLA targets, fairness goals) — violating it is bad but sometimes optimal. Softening = add a nonnegative <b>violation slack</b> and charge it in the objective:</p>
+<div class="formulation">
+<div class="fl">Hard</div>
+$$\text{delivery time}_j \le 45 \;\;\forall j$$
+<div class="fl">Soft (elastic)</div>
+$$\text{delivery time}_j \le 45 + v_j,\qquad v_j \ge 0,\qquad \min\;\Big(\cdots + \sum_j \rho\, v_j\Big)$$
+</div>
+<p>\(\rho\) is the <b>penalty rate</b> (dollars per minute late). Real dispatch systems soften almost everything except physical/logical constraints, because live marketplaces are routinely over-constrained (demand spike + Dasher shortage ⇒ some order <i>will</i> be late; the model should choose <i>which one, at minimum damage</i> — not return INFEASIBLE at 7pm on a Friday).</p>
+<div class="callout tip"><span class="t">Interview framing</span>A crisp taxonomy to recite: "I classify constraints into (1) physical/logical — hard; (2) business policy — soft with high penalty; (3) preferences — soft with low penalty or objective terms." Then ask the interviewer which category each requirement belongs to. This question-asking is explicitly graded.</div>
+</div>
+</details>
+
+<details class="card">
+<summary>Choosing penalty weights &amp; multi-objective handling</summary>
+<div class="body">
+<p>With several goals (speed, cost, Dasher earnings, freshness) you have three standard moves:</p>
+<ol>
+<li><b>Weighted sum:</b> \(\min\; \alpha\,(\text{delivery time}) + \beta\,(\text{cost}) + \gamma\,(\text{lateness})\). Simple, differentiable business tuning; weights should be set in <b>common units</b> (dollarize: a minute of customer waiting ≈ \$w based on churn/LTV analysis — say this!).</li>
+<li><b>Lexicographic / hierarchical:</b> optimize goal 1; fix it (within tolerance \(\epsilon\)); optimize goal 2 subject to that. Good when priorities are strict; solvers support multi-objective natively.</li>
+<li><b>ε-constraint:</b> optimize one objective, bound the others as constraints ("min cost s.t. p95 lateness ≤ 5 min"). Best when the business gives you SLA-style targets; sweeping ε traces the <b>Pareto frontier</b>.</li>
+</ol>
+<p>Practical rules for penalty magnitudes:</p>
+<ul>
+<li>Penalties must dominate the gains from violating them — but not by orders of magnitude, or the LP becomes ill-conditioned and the solver's feasibility tolerances start to bite.</li>
+<li>Tiered penalties model reality better: first 5 min late ≈ mild; beyond 15 min ≈ severe (piecewise-linear convex ⇒ no binaries needed when minimized, §5).</li>
+<li>A soft constraint's optimal violation being 0 with positive slack price ⇒ effectively hard at optimum; monitor violation levels over time as a health metric.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Diagnosing infeasibility like a pro</summary>
+<div class="body">
+<p>When a model returns infeasible, the interview-grade answer has three moves:</p>
+<ol>
+<li><b>Elastic relaxation:</b> add penalized slacks to all suspect constraint groups, re-solve, and read <i>which slacks are positive</i> — those constraints are the conflict. This also converts "no answer" into "least-bad answer", usually what production needs.</li>
+<li><b>IIS (Irreducible Infeasible Subsystem):</b> solvers can extract a minimal set of mutually conflicting constraints (<code>model.computeIIS()</code> in Gurobi) — great for debugging data errors like a zone whose demand exceeds any possible supply.</li>
+<li><b>Check data before blaming the model:</b> most production infeasibilities are data bugs — negative capacities, duplicate orders, stale Dasher locations.</li>
+</ol>
+<div class="callout warn"><span class="t">Common trap</span>Don't say "I'd just relax constraints until it's feasible." Say <i>which</i> constraints are legitimately soft (SLAs, preferences) and which must stay hard (a Dasher can't be in two places), and that the penalty ordering encodes business priority for <i>who gets hurt first</i> under scarcity.</div>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s7">
+<h2><span class="num">7</span>MIP, LP relaxation &amp; branch-and-bound<input type="checkbox" class="done" data-k="or-s7" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>What changes when variables must be integer</summary>
+<div class="body">
+<p>A <b>mixed-integer program</b> (MIP) is an LP where some variables are integer/binary. The feasible set becomes a <i>lattice of points inside a polyhedron</i> — nonconvex — and the problem becomes NP-hard. Two central objects:</p>
+<div class="formulation">
+<div class="fl">MIP</div>
+$$z^{MIP} = \min\{\,c^\top x : Ax \ge b,\; x \ge 0,\; x_j \in \mathbb{Z}\ \forall j \in \mathcal{I}\,\}$$
+<div class="fl">LP relaxation — drop integrality</div>
+$$z^{LP} = \min\{\,c^\top x : Ax \ge b,\; x \ge 0\,\} \;\le\; z^{MIP} \quad(\text{for minimization})$$
+</div>
+<ul>
+<li>The LP relaxation gives a <b>bound</b> (lower for min, upper for max) and is the anchor of everything: branch-and-bound prunes with it, the <b>MIP gap</b> is measured against it, and its duals price resources approximately.</li>
+<li><b>Integrality gap</b> \(= z^{MIP} - z^{LP}\): how much lying the relaxation does. Tight formulations (small gap) solve fast — this is why formulation choice matters more than solver settings.</li>
+<li>Rounding a fractional LP solution is <b>not</b> generally valid (can be infeasible or far from optimal) — but rounding + repair is a legitimate, nameable heuristic.</li>
+</ul>
+<h4>When you get integrality for free</h4>
+<p>If the constraint matrix is <b>totally unimodular</b> (TU) and the RHS is integer, every LP vertex is already integral: assignment, transportation, max-flow, min-cost flow, shortest path. Practical takeaway you should say out loud: "pure assignment doesn't even need integer variables — I can solve the LP and get a binary answer. It's the batching/side constraints that force a true MIP."</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Branch-and-bound (and cut) — how the solver thinks</summary>
+<div class="body">
+<ol>
+<li><b>Solve the LP relaxation.</b> If the solution happens to be integral — done.</li>
+<li><b>Branch:</b> pick a fractional \(x_j = 2.4\); create two children: \(x_j \le 2\) and \(x_j \ge 3\). This partitions the search space without losing any integer solution.</li>
+<li><b>Bound:</b> each node's LP value is a bound for its subtree. Maintain the <b>incumbent</b> (best integer solution found).</li>
+<li><b>Prune</b> a node if: its LP is infeasible; its bound is worse than the incumbent; or its LP is integral (update incumbent).</li>
+<li><b>Cuts</b> (branch-and-cut): add valid inequalities that slice off fractional LP points without removing integer ones (Gomory, cover, flow-cover cuts) — tightens bounds, shrinks the tree.</li>
+<li><b>Heuristics inside the solver:</b> rounding, diving, feasibility pump, RINS give good incumbents early — why solvers often find a 1%-gap solution in seconds and spend minutes proving optimality.</li>
+</ol>
+<div class="formulation">
+<div class="fl">MIP gap (what the solver log shows)</div>
+$$\text{gap} = \frac{|z^{incumbent} - z^{bound}|}{|z^{incumbent}|} \qquad \text{e.g. stop at gap} \le 1\%\ \text{or } t \ge 1\text{s}$$
+</div>
+<div class="callout tip"><span class="t">Production wisdom to volunteer</span>Real-time systems run MIPs with a <b>time limit + gap tolerance</b> and accept the incumbent: "optimal enough, on time." Also: warm-start from the previous cycle's solution (dispatch re-solves every minute with 95% unchanged data); fix-and-optimize (freeze most variables, re-optimize the changed neighborhood) for speed.</div>
+</div>
+</details>
+
+<details class="card">
+<summary>What makes MIPs slow — and formulation strength</summary>
+<div class="body">
+<ul>
+<li><b>Weak LP relaxations</b> (loose big-Ms, §5) ⇒ bad bounds ⇒ huge trees. Fix: tight constants, indicator constraints, or stronger formulations.</li>
+<li><b>Symmetry:</b> interchangeable Dashers/vehicles make the solver explore mirror-image solutions. Fix: symmetry-breaking constraints (order the vehicles: \(u_1 \ge u_2 \ge \cdots\)) or aggregate identical entities into counts.</li>
+<li><b>Big-M disjunctions everywhere</b> (scheduling) ⇒ notoriously weak; consider time-indexed formulations or CP (constraint programming) alternatives.</li>
+<li><b>Formulation strength example</b> worth memorizing — facility location. Aggregate: \(\sum_j x_{ij} \le n\, z_i\) (one constraint, weak). Disaggregate: \(x_{ij} \le z_i\ \forall j\) (many constraints, but the LP relaxation is much tighter — solves faster despite being "bigger"). "Bigger but tighter beats smaller but weaker" is an expert-level line.</li>
+</ul>
+</div>
+</details>
+</section>
+<!-- ================================================================ -->
+<section class="topic" id="s8">
+<h2><span class="num">8</span>Canonical OR problems — the pattern library<input type="checkbox" class="done" data-k="or-s8" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Assignment problem — the atom of dispatch</summary>
+<div class="body">
+<p><b>Pattern:</b> match \(n\) agents to \(n\) tasks, one each, minimizing total cost. <b>DoorDash face:</b> which Dasher takes which order.</p>
+<div class="formulation">
+$$\begin{aligned}\min\ & \sum_{i\in I}\sum_{j\in J} c_{ij} x_{ij}\\ \text{s.t. } & \sum_{j} x_{ij} \le 1 \ \ \forall i && \text{(each Dasher ≤ 1 order)}\\ & \sum_{i} x_{ij} = 1 \ \ \forall j && \text{(each order exactly 1 Dasher)}\\ & x_{ij} \in \{0,1\}\end{aligned}$$
+</div>
+<ul>
+<li>TU matrix ⇒ LP relaxation is integral; solvable by Hungarian \(O(n^3)\), min-cost flow, or as an LP/MIP.</li>
+<li>\(c_{ij}\) is where <b>ML meets OR</b>: predicted delivery time, travel time, prep-time readiness, acceptance probability, all blended into a score. The MIP consumes ML outputs as coefficients.</li>
+<li>Unbalanced case: add dummy rows/columns or use \(\le\) constraints with an "unassigned" penalty column — i.e., leaving an order unassigned is allowed at high cost (soft constraint pattern!).</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Transportation &amp; min-cost network flow</summary>
+<div class="body">
+<p><b>Pattern:</b> ship from supply nodes to demand nodes at minimum cost. <b>DoorDash face:</b> repositioning Dasher supply across zones; moving inventory to dark stores.</p>
+<div class="formulation">
+$$\begin{aligned}\min\ & \sum_{s,d} c_{sd}\, x_{sd}\\ \text{s.t. } & \sum_d x_{sd} \le S_s\ \ \forall s && \text{(supply)}\\ & \sum_s x_{sd} \ge D_d\ \ \forall d && \text{(demand)}\\ & x \ge 0\end{aligned}$$
+</div>
+<p>Generalizes to <b>min-cost flow</b> on any network with arc capacities and node balance constraints \(\sum_{\text{in}} x - \sum_{\text{out}} x = b_v\); includes shortest path and max-flow as special cases. All polynomial, all integral with integer data. Recognizing flow structure inside a business problem ("this is just a flow problem — polynomial, no need for heuristics") is a big credibility win.</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Knapsack &amp; budget allocation</summary>
+<div class="body">
+<p><b>Pattern:</b> choose items with values \(v_j\) and weights \(w_j\) under capacity \(B\). <b>DoorDash face:</b> which promotions/incentives to fund under a budget; which features to include under latency budget.</p>
+<div class="formulation">
+$$\max \sum_j v_j x_j \quad \text{s.t.}\quad \sum_j w_j x_j \le B,\quad x_j \in \{0,1\}$$
+</div>
+<ul>
+<li>LP relaxation: sort by \(v_j/w_j\) (bang-per-buck), fill greedily; at most one fractional item. Greedy on ratios is near-optimal when items are small vs. budget — the justification for simple incentive-allocation heuristics.</li>
+<li>DP in \(O(nB)\) — pseudo-polynomial; fine for modest budgets.</li>
+<li>Multi-dimensional (several resource constraints) and multiple-choice (pick one option per group) variants cover most marketing/budgeting problems.</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Set covering / packing / partitioning — the shift &amp; batching workhorse</summary>
+<div class="body">
+<div class="formulation">
+<div class="fl">Covering (≥) — e.g., every hour must be staffed</div>
+$$\min \sum_k c_k y_k \quad \text{s.t.}\quad \sum_k a_{tk}\, y_k \ge d_t\ \ \forall t,\quad y_k \in \mathbb{Z}_{\ge0}$$
+<p>\(a_{tk}=1\) if shift template \(k\) covers hour \(t\); \(y_k\) = number of Dashers on template \(k\).</p>
+<div class="fl">Partitioning (=) — e.g., every order in exactly one batch</div>
+$$\min \sum_k c_k y_k \quad \text{s.t.}\quad \sum_k a_{jk}\, y_k = 1\ \ \forall j,\quad y_k \in \{0,1\}$$
+</div>
+<p>The <b>column</b> \(k\) is a whole feasible object (a shift, a batch, a route) and \(a_{\cdot k}\) records what it covers. This "columns = candidate plans" view is the gateway to <b>column generation</b> (§12): you don't enumerate all batches — you generate promising ones on the fly using dual prices. Crew scheduling, batching, and VRP are all solved this way at scale.</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Facility location</summary>
+<div class="body">
+<p><b>Pattern:</b> open facilities (fixed cost) and assign customers (service cost). <b>DoorDash face:</b> dark kitchens, DashMart placement, zone depot siting.</p>
+<div class="formulation">
+$$\begin{aligned}\min\ & \sum_i f_i z_i + \sum_{i,j} c_{ij} x_{ij}\\ \text{s.t. } & \sum_i x_{ij} = 1\ \forall j;\qquad x_{ij} \le z_i\ \forall i,j;\qquad \sum_j d_j x_{ij} \le Q_i z_i\ \forall i\\ & z_i \in \{0,1\},\ x_{ij} \ge 0 \ (\text{or } \in \{0,1\})\end{aligned}$$
+</div>
+<p>Note both the disaggregated linking \(x_{ij} \le z_i\) (strong formulation, §7) and the capacity link. The \(p\)-median variant fixes the number of facilities (\(\sum_i z_i = p\)) instead of fixed costs.</p>
+</div>
+</details>
+
+<details class="card">
+<summary>TSP &amp; Vehicle Routing (VRP/VRPTW)</summary>
+<div class="body">
+<p><b>TSP:</b> one vehicle, visit all stops, minimize tour length. Binary arc variables \(x_{uv}\), degree-2 constraints, plus <b>subtour elimination</b> — either exponentially many cuts \(\sum_{u,v \in S} x_{uv} \le |S|-1\ \forall S\) (added lazily) or MTZ ordering variables \(u_v\): \(u_u - u_v + n\,x_{uv} \le n-1\) (compact but weak).</p>
+<p><b>VRP</b> adds multiple vehicles + capacities; <b>VRPTW</b> adds time windows via the disjunctive/time-propagation constraints:</p>
+<div class="formulation">
+$$t_v \ge t_u + s_u + \tau_{uv} - M(1 - x_{uv}), \qquad e_v \le t_v \le \ell_v$$
+</div>
+<p>(arrival time propagation when arc \(u\to v\) is used; window \([e_v,\ell_v]\)). Practical hierarchy to recite: exact MIP ≤ ~50–100 stops; column generation / branch-and-price to a few hundred; beyond that, metaheuristics (savings, LNS via OR-Tools) — which is what all delivery companies actually run. Food delivery nuance: batches are small (2–4 orders), so per-Dasher routing is nearly trivial — the hard part is <i>which orders to group</i>, not the tour order.</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Bin packing, scheduling &amp; newsvendor (rapid fire)</summary>
+<div class="body">
+<h4>Bin packing</h4>
+<p>Pack items of size \(w_j\) into fewest capacity-\(Q\) bins: \(y_k\) = bin used, \(x_{jk}\) = item in bin. \(\min \sum_k y_k\), \(\sum_j w_j x_{jk} \le Q y_k\), \(\sum_k x_{jk} = 1\). First-Fit-Decreasing uses ≤ \(\tfrac{11}{9}\)OPT + 1 bins — name it as the go-to heuristic. Face: orders into Dasher bags/vehicles, catering into vans.</p>
+<h4>Scheduling</h4>
+<p>Machines = Dashers/kitchen lines, jobs = orders with release times (food-ready) and due dates (promise time). Objectives: makespan \(C_{\max}\), total weighted tardiness \(\sum w_j T_j\) with \(T_j \ge C_j - d_j,\ T_j \ge 0\) — note tardiness is a <i>penalized slack</i>, tying back to §6.</p>
+<h4>Newsvendor — one-shot stochastic capacity</h4>
+<div class="formulation">
+$$q^* = F^{-1}\!\Big(\frac{c_u}{c_u + c_o}\Big) \quad\text{(critical fractile)}$$
+</div>
+<p>Order quantity under uncertain demand \(F\), underage cost \(c_u\) (lost sale / late order), overage cost \(c_o\) (idle Dasher-hours). Face: how many Dashers to mobilize ahead of a demand forecast — if an idle Dasher-hour costs \$5 of guarantees and an unserved order costs \$15, staff to the 75th percentile of demand. This one formula elegantly connects <b>forecasting to staffing</b> and is a superb thing to drop when supply planning comes up.</p>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s9">
+<h2><span class="num">9</span>The DoorDash problem landscape<input type="checkbox" class="done" data-k="or-s9" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>The marketplace in one picture — and where OR lives</summary>
+<div class="body">
+<p>DoorDash is a <b>three-sided marketplace</b>: consumers (want fast, cheap, reliable), Dashers (want earnings, flexibility), merchants (want volume, fresh handoff). Nearly every OR problem is a tradeoff between two of the three sides under real-time uncertainty. Key physical fact: <b>food decays</b> — an order sitting on a counter loses quality, so timing constraints are tighter than parcel logistics; and <b>supply is self-scheduled</b> — you influence Dashers with incentives, you don't command them.</p>
+<table>
+<tr><th>Problem</th><th>Canonical pattern (§8)</th><th>Cadence</th><th>Key coupling</th></tr>
+<tr><td>Dasher–order dispatch/matching</td><td>Assignment + side constraints</td><td>Re-solve ~every minute</td><td>ML predictions feed \(c_{ij}\)</td></tr>
+<tr><td>Order batching</td><td>Set partitioning / matching</td><td>Real-time</td><td>Quality (lateness) vs. efficiency</td></tr>
+<tr><td>Delay decision ("wait for better match")</td><td>Stochastic assignment / MDP flavor</td><td>Real-time</td><td>Now-vs-later value of waiting</td></tr>
+<tr><td>Dasher mobilization &amp; incentives</td><td>Newsvendor + budget knapsack</td><td>Hours–days ahead</td><td>Demand forecast uncertainty</td></tr>
+<tr><td>Shift/schedule offers</td><td>Set covering</td><td>Daily/weekly</td><td>Self-selection of Dashers</td></tr>
+<tr><td>Zone/market design</td><td>Districting / facility location</td><td>Quarterly</td><td>Long-term strategic</td></tr>
+<tr><td>DashMart placement &amp; inventory</td><td>Facility location + newsvendor</td><td>Strategic</td><td>Real estate + demand</td></tr>
+<tr><td>Promo / incentive budget allocation</td><td>Knapsack / LP</td><td>Weekly</td><td>Causal uplift estimates as coefficients</td></tr>
+</table>
+<div class="callout dd"><span class="t">DeepRed in 60 seconds (public blog)</span>DoorDash's dispatch engine has two layers. An <b>ML layer</b> predicts the inputs: food-ready/prep time, travel times, Dasher acceptance probability, order value. An <b>optimization layer</b> (a MIP, solved by a commercial solver) then makes system-wide decisions: which Dasher gets which order(s), whether to <b>batch</b> orders, and whether to <b>delay</b> an offer waiting for a better match. Solved on a rolling horizon, re-run every minute or so per region. This "ML predicts coefficients, MIP decides" architecture is the single most important thing to internalize for this interview — it's likely how they frame their questions.</div>
+</div>
+</details>
+
+<details class="card">
+<summary>The three tensions every answer should acknowledge</summary>
+<div class="body">
+<ol>
+<li><b>Efficiency vs. quality:</b> batching cuts cost-per-delivery but risks lateness and cold food. Every batching answer must include a lateness/quality guard (constraint or penalty).</li>
+<li><b>Now vs. later:</b> greedy myopic matching wastes options — the best Dasher for this order may be finishing a delivery 2 minutes away. Hence delay decisions, rolling horizons, and predicted future supply in the objective.</li>
+<li><b>System vs. individual:</b> optimizing global throughput can starve specific Dashers of earnings or specific merchants of coverage — fairness floors (max-min, §5) and acceptance-probability terms matter, and Dashers can <i>decline</i> offers (model acceptance probability, or re-offer loops).</li>
+</ol>
+<div class="callout tip"><span class="t">Interview tip</span>Uncertainty is everywhere (prep times, travel, acceptance). You rarely need full stochastic programming in a first answer. The pragmatic ladder to recite: (1) deterministic model on <b>expected values</b>; (2) add <b>buffers/percentile parameters</b> where risk is asymmetric; (3) <b>re-solve frequently</b> (rolling horizon absorbs most uncertainty); (4) only then consider two-stage stochastic or robust variants if the interviewer pushes.</div>
+</div>
+</details>
+</section>
+<!-- ================================================================ -->
+<section class="topic" id="s10">
+<h2><span class="num">10</span>The formulation playbook — a repeatable 8-step procedure<input type="checkbox" class="done" data-k="or-s10" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>The 8 steps (memorize this — it structures your whole hour)</summary>
+<div class="body">
+<ol>
+<li><b>Clarify the business goal (2–3 min).</b> Ask: What are we optimizing — cost, speed, revenue, some blend? Over what horizon? What decisions are actually controllable? What's the scale (orders/minute, Dashers/zone)? What's the latency budget for solving? <i>Asking questions is explicitly on the rubric.</i></li>
+<li><b>State assumptions out loud.</b> "I'll assume travel times are known point estimates from an ML model, single region, and I'll start deterministic — then discuss uncertainty." Assumptions are not weaknesses; unstated assumptions are.</li>
+<li><b>Define sets &amp; parameters.</b> \(I\) Dashers, \(J\) orders, data \(c_{ij}, d_j, Q_i\)… Distinguish data (known) from decisions (unknown).</li>
+<li><b>Define decision variables with domains.</b> The key creative act. Ask yourself: what is the <i>atomic decision</i>? Assign? Open? Route? Price? Delay? Choose granularity (order-level vs. batch-level vs. zone-level) to match the question and the solve-time budget.</li>
+<li><b>Write the objective.</b> One line, in dollars if possible. If multiple goals: weighted sum with dollarized weights, or ε-constraint (§6). Say which and why.</li>
+<li><b>Write constraints in named groups.</b> (a) assignment/logic, (b) capacity, (c) time/quality-of-service, (d) budget/policy, (e) variable domains. Quantify each with \(\forall\). Mark which are soft.</li>
+<li><b>Sanity-check.</b> Units per constraint; a tiny instance mentally (2 Dashers, 3 orders); edge cases — what if no feasible assignment? (⇒ add unassigned-penalty option); count variables/constraints and state whether solver + time limit is realistic.</li>
+<li><b>Discuss solution strategy &amp; validation.</b> Exact MIP with gap/time limit? Relaxation-based heuristic? Decomposition? Then: how you'd validate (backtest vs. historical decisions, simulation, shadow mode, A/B) and what business metric moves.</li>
+</ol>
+<div class="callout tip"><span class="t">Time management</span>For a 30–35 min formulation exercise: ~4 min clarifying, ~3 min assumptions/sets, ~15 min variables-objective-constraints (the core), ~5 min solution strategy, ~5 min extensions/follow-ups. If stuck choosing variables, ask: "what would a human dispatcher decide, one decision at a time?"</div>
+</div>
+</details>
+
+<details class="card">
+<summary>Clarifying questions bank (steal these verbatim)</summary>
+<div class="body">
+<ul>
+<li>"What's the objective — minimize cost, minimize lateness, maximize throughput, or a blend? Do we have a dollar value per minute of customer delay?"</li>
+<li>"Which decisions am I making vs. taking as given? (e.g., is pricing fixed while I do assignment?)"</li>
+<li>"What's the decision cadence and solve-time budget — milliseconds, a minute, overnight?"</li>
+<li>"Scale: how many orders/Dashers per decision epoch? Per region or global?"</li>
+<li>"Hard requirements vs. preferences: is the 45-min promise contractual or a target?"</li>
+<li>"What data/predictions can I assume exist (travel times, prep times, demand forecasts, acceptance probabilities)?"</li>
+<li>"How is success measured — which business metric should move, and what's the guardrail metric?"</li>
+</ul>
+</div>
+</details>
+
+<details class="card">
+<summary>Grading rubric — what "great" looks like</summary>
+<div class="body">
+<table>
+<tr><th>Dimension</th><th>Weak answer</th><th>Strong answer</th></tr>
+<tr><td>Problem framing</td><td>Jumps straight to math</td><td>Clarifies goal, cadence, scale, controllability first</td></tr>
+<tr><td>Variables</td><td>Vague ("optimize the routes")</td><td>Precise atomic decisions with domains and indices</td></tr>
+<tr><td>Objective</td><td>Multiple objectives mashed together implicitly</td><td>Explicit blend with dollarized weights or ε-constraints</td></tr>
+<tr><td>Constraints</td><td>Unquantified, misses logic constraints</td><td>Named groups, ∀-quantified, hard/soft distinguished</td></tr>
+<tr><td>Pragmatism</td><td>"Solve with Gurobi" (end of answer)</td><td>Size estimate, time limit + gap, warm start, fallback heuristic</td></tr>
+<tr><td>Uncertainty</td><td>Ignored, or overengineered stochastic program</td><td>Deterministic core + buffers + rolling horizon, escalate if needed</td></tr>
+<tr><td>Business tie</td><td>None</td><td>Names the metric that moves and the guardrail</td></tr>
+</table>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s11">
+<h2><span class="num">11</span>Six worked DoorDash-style formulations<input type="checkbox" class="done" data-k="or-s11" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>Example 1 — Real-time Dasher–order matching (the classic)</summary>
+<div class="body">
+<p><b>Prompt.</b> "Every minute, we have a set of unassigned orders and available Dashers in a region. Design the optimization that decides who delivers what."</p>
+<p><b>Clarify:</b> objective = blend of delivery speed and Dasher efficiency; Dashers may decline; leaving an order briefly unassigned is allowed; ML gives \(\hat t_{ij}\) = predicted delivery time if \(i\) serves \(j\), and food-ready times. Scale: ~10²–10³ orders/Dashers per region per solve, ≤1s budget.</p>
+<div class="formulation">
+<div class="fl">Sets &amp; parameters</div>
+<p>\(I\): available Dashers; \(J\): pending orders; \(c_{ij}\): assignment cost (weighted blend: predicted delivery duration, Dasher travel/wait, tip/earnings balance), \(p_j\): penalty for deferring order \(j\) this round (grows with order age).</p>
+<div class="fl">Decision variables</div>
+<p>\(x_{ij} \in \{0,1\}\): offer order \(j\) to Dasher \(i\); \(u_j \in \{0,1\}\): order \(j\) deferred to next solve.</p>
+<div class="fl">Model</div>
+$$\begin{aligned}\min\ & \sum_{i,j} c_{ij}\,x_{ij} + \sum_j p_j\, u_j\\ \text{s.t. } & \textstyle\sum_i x_{ij} + u_j = 1 && \forall j\ \ \text{(served or deferred)}\\ & \textstyle\sum_j x_{ij} \le 1 && \forall i\ \ \text{(one offer per Dasher)}\\ & x_{ij} = 0 && \forall (i,j)\ \text{infeasible pairs (too far, arrives before food ready + buffer)}\end{aligned}$$
+</div>
+<p><b>Why this shape:</b> the deferral variable \(u_j\) is the soft-constraint pattern (§6) — it makes the model always feasible and encodes the <b>delay decision</b>: when \(p_j\) is still small (young order) and all current matches are poor, deferring beats a bad match; as the order ages, \(p_j\) rises and forces assignment. Filtering infeasible pairs keeps the model sparse (not \(|I|\times|J|\) dense).</p>
+<p><b>Follow-ups to expect:</b> (1) <i>Declines?</i> — scale cost by acceptance probability or re-solve on decline (the every-minute loop makes this cheap); mention the churn risk of repeated offers. (2) <i>Speed?</i> — it's assignment-like; LP relaxation is near-integral; warm start from last cycle. (3) <i>Batching?</i> — see Example 2; extend \(x\) to Dasher–batch pairs. (4) <i>Fairness?</i> — add earnings floor via max-min term or long-run earnings feature inside \(c_{ij}\).</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Example 2 — Order batching (set partitioning + column generation story)</summary>
+<div class="body">
+<p><b>Prompt.</b> "When should we give one Dasher multiple orders, and how do we choose the groups?"</p>
+<p><b>Clarify:</b> batches of ≤3; orders batchable if pickup locations close and routes compatible; guard against lateness. Two-level structure: generate candidate batches, then select.</p>
+<div class="formulation">
+<div class="fl">Step 1 — generate candidate batches (offline logic / heuristic)</div>
+<p>\(K\): candidate batches — singletons plus pairs/triples passing screens (same merchant cluster, detour ≤ threshold, predicted lateness ≤ cap). For each \(k\): cost \(c_k\) (total predicted route time + weighted expected lateness) and incidence \(a_{jk} = 1\) if order \(j \in k\).</p>
+<div class="fl">Step 2 — select batches: set partitioning</div>
+$$\begin{aligned}\min\ & \sum_{k\in K} c_k\, y_k \\ \text{s.t. } & \sum_k a_{jk}\, y_k = 1 \quad \forall j\in J && \text{(each order in exactly one chosen batch)}\\ & \sum_k y_k \le |I| && \text{(enough Dashers)}\\ & y_k \in \{0,1\}\end{aligned}$$
+</div>
+<p><b>Why this shape:</b> enumerating pairs/triples among co-located orders is tractable (locality pruning); the partitioning model then optimizes globally over them. This decomposition — <i>enumerate/generate columns, then select</i> — is exactly how airlines do crew pairing and is the professional way to present batching. If \(K\) explodes, name <b>column generation</b>: solve the LP restricted to current columns, use order dual prices \(\pi_j\) to search for a new batch with negative reduced cost \(c_k - \sum_{j\in k}\pi_j &lt; 0\), repeat.</p>
+<p><b>Quality guard alternatives:</b> hard cap (only generate batches with lateness ≤ 10 min) vs. soft (lateness penalty inside \(c_k\)) — say both, note generation-time screening is cleaner because it keeps quality logic out of the master problem. Combine with Example 1 by replacing "batch count ≤ Dashers" with Dasher-specific assignment \(x_{ik}\) of batches to Dashers.</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Example 3 — Dasher shift scheduling / supply planning (set covering + newsvendor)</summary>
+<div class="body">
+<p><b>Prompt.</b> "Given an hourly demand forecast for next week, decide how many Dasher shift slots to open per zone."</p>
+<p><b>Clarify:</b> forecast \(\hat d_{t}\) (orders/hour) with uncertainty; each Dasher-hour serves \(\mu\) orders (e.g., 2.5); shifts are templates (e.g., 11–14h, 17–21h); Dashers self-select, so "open slots" is an upper bound on show-ups — apply a show-rate factor \(\sigma_k\).</p>
+<div class="formulation">
+<div class="fl">Sets &amp; parameters</div>
+<p>\(T\): hours; \(K\): shift templates, \(a_{tk}=1\) if template \(k\) covers hour \(t\); \(c_k\): expected cost per slot (guarantees/incentives); \(r_t\): required Dasher-hours \(= q_\alpha(\hat d_t)/\mu\) at service percentile \(\alpha\); \(v_t\): cost rate of unmet coverage.</p>
+<div class="fl">Decisions &amp; model</div>
+<p>\(y_k \in \mathbb{Z}_{\ge0}\): slots opened on template \(k\); \(s_t \ge 0\): coverage shortfall.</p>
+$$\begin{aligned}\min\ & \sum_k c_k y_k + \sum_t v_t\, s_t\\ \text{s.t. } & \sum_k a_{tk}\,\sigma_k\, y_k + s_t \ge r_t \quad \forall t\\ & \sum_k y_k \le N^{max} \ \ \text{(recruitable pool)},\qquad y_k \le U_k \ \ \text{(template caps)}\end{aligned}$$
+</div>
+<p><b>Why this shape:</b> classic set covering with elastic shortfall (§6). The percentile \(q_\alpha\) is where the <b>newsvendor logic</b> (§8) enters: set \(\alpha = c_u/(c_u+c_o)\) from the cost of undersupply (lost orders, late deliveries) vs. oversupply (idle-time guarantees). This is a beautiful "forecast → optimization" bridge to articulate: <i>the forecast's uncertainty, not just its mean, sets the staffing level.</i></p>
+<p><b>Follow-ups:</b> incentive knobs (if slots go unfilled, raise \(c_k\) — pay more — captured by making show-rate \(\sigma_k(c_k)\) piecewise-linear in pay); zone dimension (add index \(z\), possibly with cross-zone repositioning as a transportation problem); integrality relaxation is fine at large counts (round up).</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Example 4 — Incentive budget allocation across zones (knapsack/LP with diminishing returns)</summary>
+<div class="body">
+<p><b>Prompt.</b> "You have a \$B weekly incentive budget. Allocate it across zone-hours to maximize incremental deliveries."</p>
+<p><b>Clarify:</b> uplift estimates \(g_{zh}(b)\) = incremental deliveries in zone-hour \((z,h)\) per budget \(b\) (from causal models — <i>say the coefficients come from uplift modeling, not raw correlations</i>); diminishing returns; possibly minimum-coverage fairness across zones.</p>
+<div class="formulation">
+<div class="fl">Decisions</div>
+<p>\(b_{zh} \ge 0\): budget for zone-hour \((z,h)\). Approximate each concave \(g_{zh}\) by \(P\) linear pieces with slopes \(m_{zh1} > m_{zh2} > \cdots\) and piece caps \(w_{zhp}\).</p>
+<div class="fl">Model (LP — no binaries needed: concave maximization)</div>
+$$\begin{aligned}\max\ & \sum_{z,h}\sum_p m_{zhp}\, b_{zhp}\\ \text{s.t. } & \sum_{z,h,p} b_{zhp} \le B; \qquad 0 \le b_{zhp} \le w_{zhp}\\ & \sum_{h,p} m_{zhp} b_{zhp} \ge \underline{G}_z \ \ \forall z \ \ \text{(optional fairness floor)}\end{aligned}$$
+</div>
+<p><b>Why this shape:</b> concave returns + maximization ⇒ piecewise-linearization needs <i>no</i> integer variables (§5) — the LP naturally fills steepest pieces first. Without the fairness floor, the optimal policy is simply: <b>fund zone-hours in order of marginal uplift until the budget's shadow price exceeds the next marginal return</b> — the dual of the budget constraint <i>is</i> the company's internal price of an incremental delivery. Saying that sentence demonstrates duality mastery on a business problem.</p>
+<p><b>Follow-ups:</b> integer campaign choices (fixed creative costs ⇒ binaries, becomes multiple-choice knapsack); uncertainty in uplift (robust version: use lower-confidence-bound slopes); feedback loops (incentives shift supply which shifts uplift — re-estimate weekly).</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Example 5 — DashMart / dark-store location (facility location)</summary>
+<div class="body">
+<p><b>Prompt.</b> "Where should we open dark convenience stores in a metro, and which neighborhoods does each serve?"</p>
+<p><b>Clarify:</b> candidate sites with lease + ops fixed costs; neighborhood demand forecasts; delivery cost/time grows with distance; service radius promise (≤ 30 min); budget or store-count cap.</p>
+<div class="formulation">
+<div class="fl">Sets/parameters</div>
+<p>\(I\): candidate sites (\(f_i\) fixed cost, \(Q_i\) capacity); \(J\): demand cells (\(d_j\) forecast orders); \(c_{ij}\): cost to serve cell \(j\) from site \(i\) (∞ / excluded if time &gt; 30 min).</p>
+<div class="fl">Model</div>
+$$\begin{aligned}\min\ & \sum_i f_i z_i + \sum_{i,j} c_{ij}\, d_j\, x_{ij}\\ \text{s.t. } & \sum_i x_{ij} = 1 \ \forall j; \quad x_{ij} \le z_i \ \forall i,j; \quad \sum_j d_j x_{ij} \le Q_i z_i \ \forall i\\ & \sum_i z_i \le p; \qquad z_i \in \{0,1\},\ x_{ij} \ge 0\end{aligned}$$
+</div>
+<p><b>Discussion points that score:</b> disaggregated linking constraints for a tight relaxation (§7); demand uncertainty ⇒ solve over scenarios (two-stage: locations now, assignments per scenario — locations are first-stage variables shared across scenarios); cannibalization between nearby stores; and the practical note that with tens of sites and thousands of cells this MIP solves in seconds — no heuristics needed, unlike routing.</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Example 6 — Multi-pickup route with promise times (small VRPTW)</summary>
+<div class="body">
+<p><b>Prompt.</b> "A Dasher holds a batch of 3 orders: 2 pickups and 3 dropoffs. Sequence the stops to minimize total lateness against each order's promised time."</p>
+<p><b>Clarify:</b> precedence (pickup before its dropoff); travel times \(\tau_{uv}\) given; food-ready times \(e_u\) at pickups (can't leave earlier); promises \(d_v\) at dropoffs; lateness is soft (penalized), route duration also matters.</p>
+<div class="formulation">
+<div class="fl">Sets/decisions</div>
+<p>Nodes \(V\) = {start, pickups, dropoffs}; \(x_{uv}\in\{0,1\}\): arc \(u\to v\) traversed; \(t_v \ge 0\): arrival time; \(L_v \ge 0\): lateness at dropoff \(v\).</p>
+<div class="fl">Model</div>
+$$\begin{aligned}\min\ & \sum_{v \in \text{drops}} w_v L_v \;+\; \lambda \sum_{u,v} \tau_{uv} x_{uv}\\ \text{s.t. } & \text{degree: each node entered/left exactly once (path from start)}\\ & t_v \ge t_u + s_u + \tau_{uv} - M(1 - x_{uv}) && \forall u,v \ \ \text{(time propagation)}\\ & t_{p} \ge e_{p} \ \forall p \in \text{pickups}; \qquad t_{\text{drop}(p)} \ge t_{p} && \text{(ready time; precedence)}\\ & L_v \ge t_v - d_v,\; L_v \ge 0 && \forall v \in \text{drops (tardiness slack)}\end{aligned}$$
+</div>
+<p><b>Why this shape:</b> time-propagation big-M constraints double as subtour elimination (times must increase along arcs, so no cycles — a point worth making). Tardiness \(L_v\) is the §6 penalized-slack pattern; weights \(w_v\) can differ (VIP customers, re-promised orders).</p>
+<p><b>The pragmatic punchline:</b> with ≤ 6 stops there are ≤ 5! = 120 orderings under precedence — <b>brute force enumerates them in microseconds</b>. Present the MIP to show modeling command, then say enumeration is the production answer at this size, and the MIP matters when batching decisions and routing couple at larger scale. Recognizing when a problem is small enough to enumerate is exactly the "rigor + pragmatism" balance the rubric asks for.</p>
+</div>
+</details>
+
+<details class="card">
+<summary>Practice protocol</summary>
+<div class="body">
+<ol>
+<li>Re-derive each example from just its prompt line, by hand, without peeking. Target: complete sets → variables → objective → constraints in ≤ 10 minutes each.</li>
+<li>For each, prepare a 30-second "extension menu": uncertainty, fairness, scale, multi-objective — you'll be asked at least one.</li>
+<li>Rehearse your 2–3 <b>past projects</b> in the same 8-step language (§10): even storytelling should reveal sets/variables/objective/constraints, business impact numbers, and one tradeoff you navigated.</li>
+</ol>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s12">
+<h2><span class="num">12</span>Exact vs. heuristic — the pragmatism section<input type="checkbox" class="done" data-k="or-s12" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>The decision framework</summary>
+<div class="body">
+<table>
+<tr><th>Situation</th><th>Reach for</th><th>Why</th></tr>
+<tr><td>Assignment/flow structure, ≤ ~10⁵ vars</td><td>Exact LP/MIP</td><td>Poly-time or near-integral; solvers crush these</td></tr>
+<tr><td>MIP, seconds-scale budget, moderate size</td><td>MIP + time limit + gap tolerance + warm start</td><td>Incumbent quality is excellent early</td></tr>
+<tr><td>Huge combinatorial choice sets (batches, routes, shifts)</td><td>Column generation / branch-and-price</td><td>Never enumerate; price columns with duals</td></tr>
+<tr><td>Complicating constraints coupling easy subproblems</td><td>Lagrangian relaxation / Benders decomposition</td><td>Split into solvable pieces + coordinating prices</td></tr>
+<tr><td>Routing at scale, sub-second</td><td>Construction + local search / LNS (e.g., OR-Tools)</td><td>Exact methods can't meet latency</td></tr>
+<tr><td>Sequential decisions under uncertainty</td><td>Rolling-horizon re-optimization; (approximate) DP/RL if stakes justify</td><td>Re-solving absorbs most stochasticity cheaply</td></tr>
+</table>
+<h4>Heuristics worth naming (with one-line descriptions)</h4>
+<ul>
+<li><b>Greedy + regret:</b> insert the item whose <i>second-best</i> option is worst first (regret insertion — much better than plain greedy for routing).</li>
+<li><b>Local search / 2-opt / swap:</b> improve by small exchanges until no improving move.</li>
+<li><b>Large Neighborhood Search (LNS):</b> repeatedly destroy (remove ~20% of assignments) and repair (re-insert optimally) — state of the art for VRP.</li>
+<li><b>LP rounding + repair:</b> solve relaxation, round confident variables, fix violations — a principled MIP warm-start too.</li>
+<li><b>Simulated annealing / tabu:</b> escape local optima; mention, don't dwell.</li>
+</ul>
+<div class="callout tip"><span class="t">The sentence that wins this section</span>"I'd start exact — a MIP with a gap tolerance — because it gives a provable bound; if latency or scale kills it, I keep the MIP as the <b>offline benchmark</b> and deploy a heuristic whose quality I can measure against that bound." Heuristic <i>with</i> a bound beats heuristic alone.</div>
+</div>
+</details>
+
+<details class="card">
+<summary>Decomposition in three intuitions (name-drop safely)</summary>
+<div class="body">
+<ul>
+<li><b>Column generation:</b> master problem selects from a small pool of candidate "plans" (routes/batches/shifts); a pricing subproblem uses the master's <b>dual prices</b> to manufacture new plans with negative reduced cost. Stops when no improving plan exists ⇒ LP-optimal over the exponential set.</li>
+<li><b>Lagrangian relaxation:</b> move coupling constraints into the objective with price multipliers; the remainder decomposes (e.g., per-Dasher subproblems); adjust prices by subgradient. Gives bounds + good heuristic solutions.</li>
+<li><b>Benders:</b> fix the "hard" first-stage variables (e.g., facility openings); the remaining LP's duals generate cuts that teach the master about the second stage. The go-to for two-stage stochastic designs (Example 5 with scenarios).</li>
+</ul>
+<p>You will rarely be asked to execute these live — but correctly matching the technique to the structure ("batching over an exponential set of candidate batches ⇒ column generation") is a strong senior signal.</p>
+</div>
+</details>
+
+<details class="card">
+<summary>ML ↔ OR: the boundary questions</summary>
+<div class="body">
+<p>As an MLE interviewing on OR, expect at least one boundary question. Crisp positions:</p>
+<ul>
+<li><b>ML predicts, OR decides.</b> ML turns raw data into coefficients (\(\hat t_{ij}\), demand quantiles, acceptance probabilities); OR turns coefficients + constraints into globally consistent decisions. Don't use ML to imitate the optimizer's output; use it to feed the optimizer better inputs.</li>
+<li><b>Prediction error propagates.</b> A biased prep-time model makes batching systematically too aggressive; discuss calibration and using <b>quantiles, not means</b>, where costs are asymmetric (§8 newsvendor).</li>
+<li><b>When RL/heuristics-from-ML:</b> sequential problems where the value of an action depends on stochastic futures (delay decisions, repositioning). But note rolling-horizon MIP re-solves are a very strong, more debuggable baseline — say you'd need evidence RL beats it in simulation before deploying.</li>
+<li><b>Decision-aware ML (advanced flourish):</b> training the prediction model against downstream decision loss ("smart predict-then-optimize") rather than pure MSE.</li>
+</ul>
+</div>
+</details>
+</section>
+
+<!-- ================================================================ -->
+<section class="topic" id="s13">
+<h2><span class="num">13</span>Cheat sheet, pitfalls &amp; final checklist<input type="checkbox" class="done" data-k="or-s13" title="Mark section done"></h2>
+
+<details class="card" open>
+<summary>One-screen formulation cheat sheet</summary>
+<div class="body">
+<table>
+<tr><th>Need</th><th>Pattern</th></tr>
+<tr><td>On/off with capacity</td><td>\(x \le M z\), \(z\) binary, \(M\) = true capacity</td></tr>
+<tr><td>If A then B</td><td>\(z_A \le z_B\)</td></tr>
+<tr><td>Either-or constraints</td><td>Big-M disjunction with selector binary</td></tr>
+<tr><td>Minimize a max / fairness</td><td>\(\min T\), \(\text{load}_i \le T\ \forall i\)</td></tr>
+<tr><td>|deviation| in min-objective</td><td>Split \(u = u^+ - u^-\), minimize \(u^+ + u^-\)</td></tr>
+<tr><td>Tardiness / SLA breach</td><td>\(L \ge t - d,\ L \ge 0\), penalize \(L\)</td></tr>
+<tr><td>Always-feasible model</td><td>Elastic slacks with priority-ordered penalties</td></tr>
+<tr><td>Convex piecewise cost (min)</td><td>One linear lower-bound per piece — no binaries</td></tr>
+<tr><td>Each order exactly once</td><td>Partitioning \(\sum_k a_{jk} y_k = 1\)</td></tr>
+<tr><td>Coverage per period</td><td>Covering \(\sum_k a_{tk} y_k \ge d_t\)</td></tr>
+<tr><td>Time propagation on routes</td><td>\(t_v \ge t_u + s_u + \tau_{uv} - M(1-x_{uv})\)</td></tr>
+<tr><td>Staffing under uncertainty</td><td>Newsvendor fractile \(F^{-1}(c_u/(c_u+c_o))\)</td></tr>
+</table>
+</div>
+</details>
+
+<details class="card">
+<summary>Top 10 pitfalls (each one is a real interview deduction)</summary>
+<div class="body">
+<ol>
+<li>Diving into math before clarifying objective, cadence, and scale.</li>
+<li>Forgetting variable domains / nonnegativity, or leaving constraints unquantified.</li>
+<li>Huge big-M constants ("just use a billion") — weak relaxations, numerical trouble.</li>
+<li>A model that can be infeasible in production with no elastic fallback.</li>
+<li>Mashing objectives ("minimize cost and lateness") without weights or ε-constraint structure.</li>
+<li>Claiming shadow prices for a MIP without caveating the integrality gap.</li>
+<li>Proposing metaheuristics for a problem with polynomial structure (assignment/flow).</li>
+<li>Proposing exact TSP MIPs for thousand-stop routing (or ignoring that small batches ⇒ tiny routing subproblems).</li>
+<li>Ignoring uncertainty entirely — or jumping straight to stochastic programming instead of the buffer/rolling-horizon ladder.</li>
+<li>Never mentioning validation (backtest, simulation, shadow mode, A/B) or the business metric.</li>
+</ol>
+</div>
+</details>
+
+<details class="card">
+<summary>Night-before checklist</summary>
+<div class="body">
+<ul>
+<li>Recite the <b>8-step playbook</b> (§10) and the <b>clarifying-question bank</b> from memory.</li>
+<li>Re-derive Examples 1 (matching), 2 (batching), 3 (staffing) by hand — the three most likely prompts.</li>
+<li>Be able to: write a primal and its dual; explain shadow price to a PM in one sentence; explain LP relaxation and MIP gap; give the big-M and tardiness patterns cold.</li>
+<li>Prepare 2–3 <b>past OR projects</b> in STAR form with: the actual formulation you used, one technical tradeoff, one number of business impact.</li>
+<li>Have your one-liner on ML+OR architecture ready: "ML predicts the coefficients, optimization makes globally consistent decisions, re-solved on a rolling horizon."</li>
+</ul>
+</div>
+</details>
+</section>
+</main>
+</div>
+<script>
+function setAll(open){document.querySelectorAll('details.card').forEach(d=>d.open=open)}
+// nav toggle (mobile)
+const nt=document.getElementById('navToggle'),sb=document.getElementById('sidebar');
+nt.addEventListener('click',()=>sb.classList.toggle('open'));
+sb.addEventListener('click',e=>{if(e.target.tagName==='A')sb.classList.remove('open')});
+// scroll-spy
+const links=[...document.querySelectorAll('nav#sidebar a')];
+const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+function spy(){let i=secs.length-1;while(i>0&&secs[i].getBoundingClientRect().top>140)i--;links.forEach((a,j)=>a.classList.toggle('active',j===i))}
+document.addEventListener('scroll',spy,{passive:true});spy();
+// progress checkboxes
+const boxes=[...document.querySelectorAll('input.done')];
+function updProg(){const n=boxes.filter(b=>b.checked).length;document.getElementById('progLabel').textContent=n+' / '+boxes.length+' sections done'}
+boxes.forEach(b=>{try{b.checked=localStorage.getItem(b.dataset.k)==='1'}catch(e){}
+ b.addEventListener('change',()=>{try{localStorage.setItem(b.dataset.k,b.checked?'1':'0')}catch(e){};updProg()})});
+updProg();
+// theme toggle (dark default)
+function applyTheme(t){document.body.classList.toggle('light',t==='light');document.getElementById('themeBtn').textContent=t==='light'?'🌙 Dark theme':'☀️ Light theme'}
+function toggleTheme(){const t=document.body.classList.contains('light')?'dark':'light';try{localStorage.setItem('prep-theme',t)}catch(e){};applyTheme(t)}
+let th='dark';try{th=localStorage.getItem('prep-theme')||'dark'}catch(e){};applyTheme(th);
+// KaTeX
+document.addEventListener('DOMContentLoaded',()=>{renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})});
+</script>
+</body>
+</html>
